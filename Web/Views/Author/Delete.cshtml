@@ -1,0 +1,22 @@
+﻿@model Author
+@{
+    ViewData["Title"] = $"About - {Model.FullName}";
+}
+
+<div class="text-center">
+    <h1>Delete</h1>
+    <p>Are you sure you want detete this author?</p>
+    <div class="display-4">
+        <div>
+            First name - @Model.FirstName
+        </div>
+        <div>
+            Last name - @Model.LastName
+        </div>
+        <div class="text-right">
+            <form method="post">
+                <input type="submit" value="Delete" />
+            </form>
+        </div>
+    </div>
+</div>

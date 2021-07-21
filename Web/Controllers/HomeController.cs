@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Web.Data;
 using Web.Models;
 
@@ -13,19 +9,17 @@ namespace Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
         private readonly ApplicationContext _context;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationContext context)
+
+        public HomeController(ApplicationContext context)
         {
-            _logger = logger;
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(_context.Authors.Include(a => a.Projects).ToList());
+            return View(await _context.Projects.Include(p => p.Authors).ToListAsync());
         }
 
         public IActionResult Privacy()
@@ -36,7 +30,9 @@ namespace Web.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var evm = new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier };
+
+            return View(evm);
         }
     }
 }

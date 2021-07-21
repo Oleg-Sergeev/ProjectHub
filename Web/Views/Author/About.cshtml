@@ -1,0 +1,22 @@
+﻿@model Author
+@{
+    ViewData["Title"] = $"{Model.FullName}";
+}
+
+<h1>About</h1>
+
+<div class="container text-left" style="background-color:#eee">
+    <h2>@Model.FullName</h2>
+    <p>
+        Projects:
+        @foreach (var project in Model.Projects)
+        {
+            <div class="w-auto">
+                @Html.RouteLink(project.Name, new { controller = "Project", action = "About", id = project.Id })
+            </div>
+        }
+    </p>
+</div>
+<div class="pt-2 d-flex justify-content-between">
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index" role="button">Projects list</a>
+</div>

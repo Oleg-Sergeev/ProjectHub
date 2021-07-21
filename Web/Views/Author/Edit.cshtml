@@ -1,0 +1,26 @@
+﻿@model Author
+@{
+    ViewData["Title"] = $"Edit - {Model.FullName}";
+}
+
+<div class="text-center">
+    <h1>Edit</h1>
+    <div class="display-4">
+        <form method="post">
+            <input type="hidden" name="Id" value="@Model.Id" />
+            <table>
+                <tr>
+                    <td>First name:</td>
+                    <td><input type="text" name="FirstName" value="@Model.FirstName" /> </td>
+                </tr>
+                <tr>
+                    <td>Last name:</td>
+                    <td><input type="text" name="LastName" value="@Model.LastName" /></td>
+                </tr>
+                <tr>
+                    <td><input type="submit" value="Send" /> </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>

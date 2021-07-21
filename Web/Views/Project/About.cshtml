@@ -1,0 +1,27 @@
+﻿@model Project
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<h1>About</h1>
+
+<div class="container" style="background-color:#eee">
+    <h2>@Model.Name</h2>
+    <div class="text-left">
+        <p>
+            @Model.Description
+        </p>
+            Authors:
+            @foreach (var author in Model.Authors)
+            {
+                <div class="w-auto">
+                    <a href="~/Author/About/@author.Id">@author.FullName</a>
+                </div>
+            }
+    </div>
+</div>
+<div class="pt-2 d-flex justify-content-between">
+    <a class="btn btn-outline-primary" href="" role="button">Previous project</a>
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index" role="button">Projects list</a>
+    <a class="btn btn-outline-primary" href="" role="button">Next project</a>
+</div>
