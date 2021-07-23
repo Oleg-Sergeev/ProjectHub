@@ -1,0 +1,31 @@
+﻿@model ProjectViewModel
+@{
+    ViewData["Title"] = $"Edit {Model.Name}";
+}
+
+<h1>Edit</h1>
+
+<form asp-action="Edit">
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input class="form-control" asp-for="Name" value="@Model.Name" />
+        <span asp-validation-for="Name"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Description"></label>
+        <input class="form-control" asp-for="Description" value="@Model.Description" />
+        <span asp-validation-for="Description"></span>
+    </div>
+    <div>
+        <label>Authors</label>
+        @Html.ListBoxFor(p => p.AuthorsId, ViewBag.Authors as List<SelectListItem>, new { @class = "custom-select", multiple = "" })
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a class="btn btn-primary" asp-action="About" asp-route-id="@Model.Id" role="button">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

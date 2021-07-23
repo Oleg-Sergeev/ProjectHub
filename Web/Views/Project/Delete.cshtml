@@ -1,21 +1,21 @@
-﻿@model Author
+﻿@model Project
 @{
-    ViewData["Title"] = $"Delete {Model.FullName}";
+    ViewData["Title"] = $"Delete {Model.Name}";
 }
 
 <h1>Delete</h1>
 
 <div>
-    <p>Are you sure you want detete this author?</p>
+    <p>Are you sure you want detete this project?</p>
 
     <div class="container text-left" style="background-color:#eee">
-        <h2>@Model.FullName</h2>
+        <h2>@Model.Name</h2>
         <p>
-            Projects:
-            @foreach (var project in Model.Projects)
+            Authors:
+            @foreach (var project in Model.Authors)
             {
                 <div class="w-auto">
-                    @Html.RouteLink(project.Name, new { controller = "Project", action = "About", id = project.Id })
+                    @Html.RouteLink(project.FullName, new { controller = "Author", action = "About", id = project.Id })
                 </div>
             }
         </p>

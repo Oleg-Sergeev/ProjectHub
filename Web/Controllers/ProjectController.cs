@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
+using Web.Models;
 
 namespace Web.Controllers
 {
@@ -30,67 +31,95 @@ namespace Web.Controllers
                 );
         }
 
-        // GET: ProjectController/Create
-        public ActionResult Create()
+        public IActionResult Create()
         {
+            ViewBag.Authors = new List<SelectListItem>(_db.Authors.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.FullName }).ToList());
             return View();
         }
 
-        // POST: ProjectController/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Create(ProjectViewModel projectVM)
         {
-            try
+            var project = new Project()
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+                Name = projectVM.Name,
+                Authors = _db.Authors.Where(a => projectVM.AuthorsId.Contains(a.Id)).ToList()
+            };
+
+            await _db.Projects.AddAsync(project);
+
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction(nameof(About), new { project.Id });
         }
 
-        // GET: ProjectController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            return View();
+            var project = await _db.Projects
+                .Include(p => p.Authors)
+                .Where(p => p.Id == id)
+                .SingleAsync();
+
+            var projectVM = new ProjectViewModel
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                AuthorsId = project.Authors.Select(a => a.Id)
+            };
+
+            ViewBag.Authors = new List<SelectListItem>(_db.Authors
+                .Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = a.FullName,
+                    Selected = projectVM.AuthorsId.Contains(a.Id)
+                }).ToList());
+
+            return View(projectVM);
         }
 
-        // POST: ProjectController/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Edit(int id, ProjectViewModel editedProjectVM)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            var project = await _db.Projects
+                .Include(p => p.Authors)
+                .Where(p => p.Id == id)
+                .SingleAsync();
+
+            project.Name = editedProjectVM.Name;
+            project.Description = editedProjectVM.Description;
+            project.Authors = _db.Authors.Where(a => editedProjectVM.AuthorsId.Contains(a.Id)).ToList();
+
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction(nameof(About), new { id });
         }
 
-        // GET: ProjectController/Delete/5
-        public ActionResult Delete(int id)
+
+        public async Task<IActionResult> Delete(int id)
         {
-            return View();
+            return View(
+                await _db.Projects
+                .Include(p => p.Authors)
+                .Where(p => p.Id == id)
+                .SingleAsync()
+                );
         }
 
-        // POST: ProjectController/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        [ActionName("Delete")]
+        public async Task<IActionResult> DeletePost(int id)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            var project = await _db.Projects.FindAsync(id);
+
+            if (project is null) return NotFound();
+
+            _db.Projects.Remove(project);
+
+            await _db.SaveChangesAsync();
+
+            return Redirect("~/");
         }
     }
 }

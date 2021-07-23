@@ -1,19 +1,20 @@
 ﻿@model IEnumerable<Project>
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Project hub";
 }
 
 <h1>Project hub</h1>
+
 <div>
     @foreach (var project in Model)
     {
-        <div class="container py-3">
-            <div style="background-color: #eee;">
+        <div class="container my-3">
+            <div class="rounded-lg" style="background-color: #f5f5f5;">
 
                 <div class="h4">
-                    @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id }, new { style = "color:red" })
+                    @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id })
                 </div>
-                <div class="w-auto p-3 text-right">
+                <div class="w-auto m-3 text-right">
                     @foreach (var author in project.Authors)
                     {
                         <div class="w-auto small">
@@ -24,4 +25,9 @@
             </div>
         </div>
     }
+
+    <div class="m-2 d-flex justify-content-end">
+        <a class="btn btn-primary mx-1" asp-controller="Project" asp-action="Create" role="button">New project</a>
+        <a class="btn btn-primary mx-1" asp-controller="Author" asp-action="Create" role="button">New author</a>
+    </div>
 </div>

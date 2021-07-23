@@ -1,6 +1,6 @@
 ﻿@model Author
 @{
-    ViewData["Title"] = $"{Model.FullName}";
+    ViewData["Title"] = $"About {Model.FullName}";
 }
 
 <h1>About</h1>
@@ -17,6 +17,11 @@
         }
     </p>
 </div>
-<div class="pt-2 d-flex justify-content-between">
-    <a class="btn btn-primary" asp-controller="Home" asp-action="Index" role="button">Projects list</a>
+
+<div class="mt-2 d-flex justify-content-between">
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index" role="button">Projects hub</a>
+    <div>
+        <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@Model.Id" role="button">Edit</a>
+        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id" role="button">Delete</a>
+    </div>
 </div>

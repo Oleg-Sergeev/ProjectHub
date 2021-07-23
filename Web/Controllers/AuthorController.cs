@@ -1,10 +1,11 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
+using Web.Models;
 
 namespace Web.Controllers
 {
@@ -29,45 +30,81 @@ namespace Web.Controllers
 
         public IActionResult Create()
         {
+            ViewBag.Projects = new List<SelectListItem>(_db.Projects.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name }).ToList());
             return View();
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Author author)
+        public async Task<IActionResult> Create(AuthorViewModel authorVM)
         {
-            return View();
+            var author = new Author()
+            {
+                FirstName = authorVM.FirstName,
+                LastName = authorVM.LastName,
+                Projects = _db.Projects.Where(p => authorVM.ProjectsId.Contains(p.Id)).ToList()
+            };
+
+            await _db.Authors.AddAsync(author);
+
+            await _db.SaveChangesAsync();
+
+            return Redirect("~/");
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            return View(await _db.Authors.FindAsync(id));
+            var author = await _db.Authors
+                .Include(a => a.Projects)
+                .Where(a => a.Id == id)
+                .SingleAsync();
+
+            var authorVM = new AuthorViewModel
+            {
+                Id = author.Id,
+                FirstName = author.FirstName,
+                LastName = author.LastName,
+                ProjectsId = author.Projects.Select(p => p.Id)
+            };
+
+            ViewBag.Projects = new List<SelectListItem>(_db.Projects
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name,
+                    Selected = authorVM.ProjectsId.Contains(p.Id)
+                }).ToList());
+
+            return View(authorVM);
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Author editedAuthor)
+        public async Task<IActionResult> Edit(int id, AuthorViewModel editedAuthorVM)
         {
-            var author = await _db.Authors.FindAsync(id);
+            var author = await _db.Authors
+                .Include(a => a.Projects)
+                .Where(a => a.Id == id)
+                .SingleAsync();
 
-            if (author is null) return NotFound();
-
-            author.FirstName = editedAuthor.FirstName;
-            author.LastName = editedAuthor.LastName;
+            author.FirstName = editedAuthorVM.FirstName;
+            author.LastName = editedAuthorVM.LastName;
+            author.Projects = _db.Projects.Where(p => editedAuthorVM.ProjectsId.Contains(p.Id)).ToList();
 
             await _db.SaveChangesAsync();
 
             return RedirectToAction(nameof(About), new { id });
         }
 
+        [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            return View(await _db.Authors.FindAsync(id));
+            return View(await _db.Authors
+                .Include(a => a.Projects)
+                .Where(a => a.Id == id)
+                .SingleAsync());
         }
 
         [HttpPost]
         [ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePost(int id)
         {
             var author = await _db.Authors.FindAsync(id);
