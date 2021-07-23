@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,9 +18,23 @@ namespace Web.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.Projects.Include(p => p.Authors).ToListAsync());
+            var pageSize = 3;
+
+            var allProjects = _context.Projects.Include(p => p.Authors);
+
+            var projectsCount = await allProjects.CountAsync();
+
+            var pagedProjects = await allProjects.OrderBy(p => p.Id).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            
+            PageViewModel pageVM = new (page, projectsCount, pageSize);
+
+            IndexViewModel indexVM = new(pagedProjects, pageVM);
+
+            ViewBag.Page = page;
+
+            return View(indexVM);
         }
 
         public IActionResult Privacy()

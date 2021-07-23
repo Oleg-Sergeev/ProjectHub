@@ -1,16 +1,19 @@
-﻿@model IEnumerable<Project>
+﻿@model IndexViewModel
 @{
     ViewData["Title"] = "Project hub";
+    var hasPreviousPage = Model.PageViewModel.HasPreviousPage ? "" : "disabled";
+    var hasNextPage = Model.PageViewModel.HasNextPage ? "" : "disabled";
+    var prevPage = Model.PageViewModel.CurrentPage - 1;
+    var nextPage = Model.PageViewModel.CurrentPage + 1;
 }
 
 <h1>Project hub</h1>
 
 <div>
-    @foreach (var project in Model)
+    @foreach (var project in Model.Projects)
     {
         <div class="container my-3">
             <div class="rounded-lg" style="background-color: #f5f5f5;">
-
                 <div class="h4">
                     @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id })
                 </div>
@@ -26,8 +29,16 @@
         </div>
     }
 
-    <div class="m-2 d-flex justify-content-end">
-        <a class="btn btn-primary mx-1" asp-controller="Project" asp-action="Create" role="button">New project</a>
-        <a class="btn btn-primary mx-1" asp-controller="Author" asp-action="Create" role="button">New author</a>
+    @if (Context.User.IsInRole("admin"))
+    {
+        <div class="m-2 d-flex justify-content-end">
+            <a class="btn btn-primary mx-1" asp-controller="Project" asp-action="Create" role="button">New project</a>
+            <a class="btn btn-primary mx-1" asp-controller="Author" asp-action="Create" role="button">New author</a>
+        </div>
+    }
+
+    <div class="m-2 d-flex justify-content-center">
+        <a class="btn btn-outline-primary mx-2 @hasPreviousPage" asp-action="Index" asp-route-page="@prevPage" role="button">Prev</a>
+        <a class="btn btn-outline-primary mx-2 @hasNextPage" asp-action="Index" asp-route-page="@nextPage" role="button">Next</a>
     </div>
 </div>
