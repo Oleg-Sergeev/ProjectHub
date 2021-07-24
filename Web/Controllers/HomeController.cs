@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Web.Data;
-using Web.Models;
+using Web.ViewModels;
+using Web.ViewModels.Pagination;
 
 namespace Web.Controllers
 {
@@ -26,9 +27,13 @@ namespace Web.Controllers
 
             var projectsCount = await allProjects.CountAsync();
 
-            var pagedProjects = await allProjects.OrderBy(p => p.Id).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-            
-            PageViewModel pageVM = new (page, projectsCount, pageSize);
+            var pagedProjects = await allProjects
+                .OrderBy(p => p.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            PageViewModel pageVM = new(page, projectsCount, pageSize);
 
             IndexViewModel indexVM = new(pagedProjects, pageVM);
 

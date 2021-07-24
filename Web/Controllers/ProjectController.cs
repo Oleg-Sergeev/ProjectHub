@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Web.Data;
-using Web.Models;
+using Web.Extensions;
+using Web.ViewModels;
 
 namespace Web.Controllers
 {
@@ -25,17 +26,18 @@ namespace Web.Controllers
 
         public async Task<IActionResult> About(int id)
         {
-            return View(
-                await _db.Projects
-                .Include(p => p.Authors)
-                .Where(p => p.Id == id)
-                .SingleOrDefaultAsync()
-                );
+            return View(await _db.Projects.GetProjectWithProjectsAsync(id));
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Authors = new List<SelectListItem>(_db.Authors.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.FullName }).ToList());
+            ViewBag.Authors = new List<SelectListItem>(await _db.Authors
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.FullName
+                }).ToListAsync());
+
             return View();
         }
 
@@ -45,7 +47,9 @@ namespace Web.Controllers
             var project = new Project()
             {
                 Name = projectVM.Name,
-                Authors = _db.Authors.Where(a => projectVM.AuthorsId.Contains(a.Id)).ToList()
+                Authors = await _db.Authors
+                .Where(a => projectVM.AuthorsId.Contains(a.Id))
+                .ToListAsync()
             };
 
             await _db.Projects.AddAsync(project);
@@ -57,10 +61,7 @@ namespace Web.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var project = await _db.Projects
-                .Include(p => p.Authors)
-                .Where(p => p.Id == id)
-                .SingleAsync();
+            var project = await _db.Projects.GetProjectWithProjectsAsync(id);
 
             var projectVM = new ProjectViewModel
             {
@@ -70,13 +71,13 @@ namespace Web.Controllers
                 AuthorsId = project.Authors.Select(a => a.Id)
             };
 
-            ViewBag.Authors = new List<SelectListItem>(_db.Authors
+            ViewBag.Authors = new List<SelectListItem>(await _db.Authors
                 .Select(a => new SelectListItem
                 {
                     Value = a.Id.ToString(),
                     Text = a.FullName,
                     Selected = projectVM.AuthorsId.Contains(a.Id)
-                }).ToList());
+                }).ToListAsync());
 
             return View(projectVM);
         }
@@ -84,14 +85,13 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(int id, ProjectViewModel editedProjectVM)
         {
-            var project = await _db.Projects
-                .Include(p => p.Authors)
-                .Where(p => p.Id == id)
-                .SingleAsync();
+            var project = await _db.Projects.GetProjectWithProjectsAsync(id);
 
             project.Name = editedProjectVM.Name;
             project.Description = editedProjectVM.Description;
-            project.Authors = _db.Authors.Where(a => editedProjectVM.AuthorsId.Contains(a.Id)).ToList();
+            project.Authors = await _db.Authors
+                .Where(a => editedProjectVM.AuthorsId.Contains(a.Id))
+                .ToListAsync();
 
             await _db.SaveChangesAsync();
 
@@ -101,12 +101,7 @@ namespace Web.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            return View(
-                await _db.Projects
-                .Include(p => p.Authors)
-                .Where(p => p.Id == id)
-                .SingleAsync()
-                );
+            return View(await _db.Projects.GetProjectWithProjectsAsync(id));
         }
 
         [HttpPost]
@@ -114,8 +109,6 @@ namespace Web.Controllers
         public async Task<IActionResult> DeletePost(int id)
         {
             var project = await _db.Projects.FindAsync(id);
-
-            if (project is null) return NotFound();
 
             _db.Projects.Remove(project);
 

@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
+using Infrastructure.Data;
+using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Web.Data;
-using Web.Extensions;
 
 namespace Web
 {
@@ -19,7 +19,7 @@ namespace Web
 
                 var context = serviceProvider.GetRequiredService<ApplicationContext>();
 
-                await context.InitializeDbAsync();
+                await context.SeedAsync();
             }
 
             await host.RunAsync();

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Web.Models
+namespace Web.ViewModels.Account
 {
-    public class SignInViewModel
+    public class LoginViewModel
     {
         [Required]
         [EmailAddress]
@@ -11,9 +11,5 @@ namespace Web.Models
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
-
-        [DataType(DataType.Password)]
-        [Compare("Password")]
-        public string ConfirmPassword { get; set; }
     }
 }

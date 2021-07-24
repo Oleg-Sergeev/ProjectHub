@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Web.Models
+namespace Web.ViewModels.Pagination
 {
     public class PageViewModel
     {

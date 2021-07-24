@@ -1,4 +1,6 @@
-﻿@model IndexViewModel
+﻿@using Web.ViewModels.Pagination
+
+@model IndexViewModel
 @{
     ViewData["Title"] = "Project hub";
     var hasPreviousPage = Model.PageViewModel.HasPreviousPage ? "" : "disabled";

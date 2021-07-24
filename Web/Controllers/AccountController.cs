@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Web.Data;
-using Web.Models;
+using Web.ViewModels.Account;
 
 namespace Web.Controllers
 {
@@ -30,7 +30,7 @@ namespace Web.Controllers
         {
             var user = await _db.Users.FirstAsync(u => u.Email == login.Email && u.Password == login.Password);
 
-            await Authenticate(user.Email);
+            await AuthenticateAsync(user.Email);
 
             return RedirectToAction("Index", "Home");
         }
@@ -48,7 +48,7 @@ namespace Web.Controllers
 
             await _db.SaveChangesAsync();
 
-            await Authenticate(register.Email);
+            await AuthenticateAsync(register.Email);
 
             return RedirectToAction("Index", "Home");
         }
@@ -61,7 +61,7 @@ namespace Web.Controllers
         }
 
 
-        private async Task Authenticate(string userName)
+        private async Task AuthenticateAsync(string userName)
         {
             var claims = new List<Claim>
             {

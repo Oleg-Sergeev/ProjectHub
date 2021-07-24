@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Web.Data;
+using Infrastructure.Data;
 
 namespace Web.Migrations
 {
@@ -35,7 +35,7 @@ namespace Web.Migrations
                     b.ToTable("AuthorProject");
                 });
 
-            modelBuilder.Entity("Web.Data.Author", b =>
+            modelBuilder.Entity("Infrastructure.Data.Author", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -57,7 +57,7 @@ namespace Web.Migrations
                     b.ToTable("Authors");
                 });
 
-            modelBuilder.Entity("Web.Data.Project", b =>
+            modelBuilder.Entity("Infrastructure.Data.Project", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -76,7 +76,7 @@ namespace Web.Migrations
                     b.ToTable("Projects");
                 });
 
-            modelBuilder.Entity("Web.Data.User", b =>
+            modelBuilder.Entity("Infrastructure.Data.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -98,13 +98,13 @@ namespace Web.Migrations
 
             modelBuilder.Entity("AuthorProject", b =>
                 {
-                    b.HasOne("Web.Data.Author", null)
+                    b.HasOne("Infrastructure.Data.Author", null)
                         .WithMany()
                         .HasForeignKey("AuthorsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Web.Data.Project", null)
+                    b.HasOne("Infrastructure.Data.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectsId")
                         .OnDelete(DeleteBehavior.Cascade)

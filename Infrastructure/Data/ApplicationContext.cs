@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Web.Data
+namespace Infrastructure.Data
 {
     public class ApplicationContext : DbContext
     {
@@ -10,9 +10,16 @@ namespace Web.Data
 
         public DbSet<User> Users { get; set; }
 
+
         public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
         {
             Database.EnsureCreated();
+        }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

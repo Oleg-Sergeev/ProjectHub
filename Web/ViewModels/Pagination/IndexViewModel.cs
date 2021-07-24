@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Web.Data;
+using Infrastructure.Data;
 
-namespace Web.Models
+namespace Web.ViewModels.Pagination
 {
     public class IndexViewModel
     {

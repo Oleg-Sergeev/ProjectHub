@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Web.Data;
-using Web.Models;
+using Web.Extensions;
+using Web.ViewModels;
 
 namespace Web.Controllers
 {
@@ -24,15 +25,18 @@ namespace Web.Controllers
 
         public async Task<IActionResult> About(int id)
         {
-            return View(await _db.Authors
-                .Include(a => a.Projects)
-                .Where(a => a.Id == id)
-                .SingleAsync());
+            return View(await _db.Authors.GetAuthorWithProjectsAsync(id));
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Projects = new List<SelectListItem>(_db.Projects.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name }).ToList());
+            ViewBag.Projects = new List<SelectListItem>(await _db.Projects
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                }).ToListAsync());
+
             return View();
         }
 
@@ -43,7 +47,9 @@ namespace Web.Controllers
             {
                 FirstName = authorVM.FirstName,
                 LastName = authorVM.LastName,
-                Projects = _db.Projects.Where(p => authorVM.ProjectsId.Contains(p.Id)).ToList()
+                Projects = await _db.Projects
+                .Where(p => authorVM.ProjectsId.Contains(p.Id))
+                .ToListAsync()
             };
 
             await _db.Authors.AddAsync(author);
@@ -55,10 +61,7 @@ namespace Web.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var author = await _db.Authors
-                .Include(a => a.Projects)
-                .Where(a => a.Id == id)
-                .SingleAsync();
+            var author = await _db.Authors.GetAuthorWithProjectsAsync(id);
 
             var authorVM = new AuthorViewModel
             {
@@ -68,13 +71,13 @@ namespace Web.Controllers
                 ProjectsId = author.Projects.Select(p => p.Id)
             };
 
-            ViewBag.Projects = new List<SelectListItem>(_db.Projects
+            ViewBag.Projects = new List<SelectListItem>(await _db.Projects
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
                     Text = p.Name,
                     Selected = authorVM.ProjectsId.Contains(p.Id)
-                }).ToList());
+                }).ToListAsync());
 
             return View(authorVM);
         }
@@ -82,14 +85,13 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(int id, AuthorViewModel editedAuthorVM)
         {
-            var author = await _db.Authors
-                .Include(a => a.Projects)
-                .Where(a => a.Id == id)
-                .SingleAsync();
+            var author = await _db.Authors.GetAuthorWithProjectsAsync(id);
 
             author.FirstName = editedAuthorVM.FirstName;
             author.LastName = editedAuthorVM.LastName;
-            author.Projects = _db.Projects.Where(p => editedAuthorVM.ProjectsId.Contains(p.Id)).ToList();
+            author.Projects = await _db.Projects
+                .Where(p => editedAuthorVM.ProjectsId.Contains(p.Id))
+                .ToListAsync();
 
             await _db.SaveChangesAsync();
 
@@ -99,10 +101,7 @@ namespace Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            return View(await _db.Authors
-                .Include(a => a.Projects)
-                .Where(a => a.Id == id)
-                .SingleAsync());
+            return View(await _db.Authors.GetAuthorWithProjectsAsync(id));
         }
 
         [HttpPost]

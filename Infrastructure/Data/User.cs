@@ -1,15 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using ProjectHubDTO;
 
-namespace Web.Models
+namespace Infrastructure.Data
 {
-    public class LoginViewModel
+    public class User : BaseEntity
     {
         [Required]
         [EmailAddress]
         public string Email { get; set; }
 
         [Required]
-        [DataType(DataType.Password)]
         public string Password { get; set; }
     }
 }
