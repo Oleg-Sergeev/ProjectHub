@@ -1,4 +1,5 @@
 using Infrastructure.Data;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,6 +27,11 @@ namespace Web
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options => options.LoginPath = "/Account/Login");
+
+
+            services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
+            services.AddScoped<IAuthorRepository, AuthorRepository>();
+            services.AddScoped<IProjectRepository, ProjectRepository>();
 
             services.AddControllersWithViews();
         }

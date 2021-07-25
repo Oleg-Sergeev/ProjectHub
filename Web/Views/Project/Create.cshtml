@@ -18,7 +18,7 @@
     </div>
     <div>
         <label>Authors</label>
-        @Html.ListBoxFor(p => p.AuthorsId, ViewBag.Authors as List<SelectListItem>, new { @class = "custom-select", multiple = "" })
+        @Html.ListBoxFor(a => a.AuthorsId, (MultiSelectList)ViewBag.Authors, new { @class = "custom-select", multiple = "" })
     </div>
     <div>
         <button type="submit" class="btn btn-primary">Submit</button>

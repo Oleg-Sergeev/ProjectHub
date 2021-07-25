@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.Data;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Web.Extensions;
 using Web.ViewModels;
 
@@ -15,28 +15,25 @@ namespace Web.Controllers
     [Authorize]
     public class ProjectController : Controller
     {
-        private readonly ApplicationContext _db;
+        private readonly IAuthorRepository _authorRepository;
+        private readonly IProjectRepository _projectRepository;
 
 
-        public ProjectController(ApplicationContext context)
+        public ProjectController(IAuthorRepository authorRepository, IProjectRepository projectRepository)
         {
-            _db = context;
+            _authorRepository = authorRepository;
+            _projectRepository = projectRepository;
         }
 
 
         public async Task<IActionResult> About(int id)
         {
-            return View(await _db.Projects.GetProjectWithProjectsAsync(id));
+            return View(await _projectRepository.GetByIdWithAuthorsAsync(id));
         }
 
         public async Task<IActionResult> Create()
         {
-            ViewBag.Authors = new List<SelectListItem>(await _db.Authors
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.FullName
-                }).ToListAsync());
+            ViewBag.Authors = await _authorRepository.CreateMultiSelectListAsync("Id", "FullName");
 
             return View();
         }
@@ -47,21 +44,17 @@ namespace Web.Controllers
             var project = new Project()
             {
                 Name = projectVM.Name,
-                Authors = await _db.Authors
-                .Where(a => projectVM.AuthorsId.Contains(a.Id))
-                .ToListAsync()
+                Authors = await _authorRepository.WhereToListAsync(a => projectVM.AuthorsId.Contains(a.Id))
             };
 
-            await _db.Projects.AddAsync(project);
-
-            await _db.SaveChangesAsync();
+            await _projectRepository.AddAsync(project);
 
             return RedirectToAction(nameof(About), new { project.Id });
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var project = await _db.Projects.GetProjectWithProjectsAsync(id);
+            var project = await _projectRepository.GetByIdWithAuthorsAsync(id);
 
             var projectVM = new ProjectViewModel
             {
@@ -71,13 +64,7 @@ namespace Web.Controllers
                 AuthorsId = project.Authors.Select(a => a.Id)
             };
 
-            ViewBag.Authors = new List<SelectListItem>(await _db.Authors
-                .Select(a => new SelectListItem
-                {
-                    Value = a.Id.ToString(),
-                    Text = a.FullName,
-                    Selected = projectVM.AuthorsId.Contains(a.Id)
-                }).ToListAsync());
+            ViewBag.Authors = await _authorRepository.CreateMultiSelectListAsync("Id", "FullName", projectVM.AuthorsId);
 
             return View(projectVM);
         }
@@ -85,15 +72,13 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(int id, ProjectViewModel editedProjectVM)
         {
-            var project = await _db.Projects.GetProjectWithProjectsAsync(id);
+            var project = await _projectRepository.GetByIdWithAuthorsAsync(id);
 
             project.Name = editedProjectVM.Name;
             project.Description = editedProjectVM.Description;
-            project.Authors = await _db.Authors
-                .Where(a => editedProjectVM.AuthorsId.Contains(a.Id))
-                .ToListAsync();
+            project.Authors = await _authorRepository.WhereToListAsync(a => editedProjectVM.AuthorsId.Contains(a.Id));
 
-            await _db.SaveChangesAsync();
+            await _projectRepository.UpdateAsync(project);
 
             return RedirectToAction(nameof(About), new { id });
         }
@@ -101,20 +86,28 @@ namespace Web.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            return View(await _db.Projects.GetProjectWithProjectsAsync(id));
+            return View(await _projectRepository.GetByIdWithAuthorsAsync(id));
         }
 
         [HttpPost]
         [ActionName("Delete")]
         public async Task<IActionResult> DeletePost(int id)
         {
-            var project = await _db.Projects.FindAsync(id);
+            var project = await _projectRepository.GetByIdAsync(id);
 
-            _db.Projects.Remove(project);
-
-            await _db.SaveChangesAsync();
+            await _projectRepository.RemoveAsync(project);
 
             return Redirect("~/");
+        }
+
+
+
+
+        private async Task<MultiSelectList> GetProjectsMultiSelectListAsync(IEnumerable selectedValues = default)
+        {
+            var authors = await _authorRepository.GetAllListAsync(false);
+
+            return new MultiSelectList(authors, "Id", "FullName", selectedValues);
         }
     }
 }

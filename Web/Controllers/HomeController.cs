@@ -1,9 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Infrastructure.Data;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Web.ViewModels;
 using Web.ViewModels.Pagination;
 
@@ -11,27 +10,26 @@ namespace Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ApplicationContext _context;
+        private readonly IProjectRepository _projectRepository;
 
 
-        public HomeController(ApplicationContext context)
+        public HomeController(IProjectRepository projectRepository)
         {
-            _context = context;
+            _projectRepository = projectRepository;
         }
 
         public async Task<IActionResult> Index(int page = 1)
         {
             var pageSize = 3;
 
-            var allProjects = _context.Projects.Include(p => p.Authors);
+            var projectsCount = await _projectRepository.CountAsync();
 
-            var projectsCount = await allProjects.CountAsync();
-
-            var pagedProjects = await allProjects
+            var pagedProjects = _projectRepository
+                .WithAuthors()
                 .OrderBy(p => p.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToList();
 
             PageViewModel pageVM = new(page, projectsCount, pageSize);
 

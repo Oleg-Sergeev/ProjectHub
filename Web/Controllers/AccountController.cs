@@ -2,21 +2,21 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Infrastructure.Data;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Web.ViewModels.Account;
 
 namespace Web.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly ApplicationContext _db;
+        private readonly IAsyncRepository<User> _userRepository;
 
-        public AccountController(ApplicationContext db)
+        public AccountController(IAsyncRepository<User> userRepository)
         {
-            _db = db;
+            _userRepository = userRepository;
         }
 
 
@@ -28,7 +28,7 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel login)
         {
-            var user = await _db.Users.FirstAsync(u => u.Email == login.Email && u.Password == login.Password);
+            var user = await _userRepository.FirstAsync(u => u.Email == login.Email && u.Password == login.Password);
 
             await AuthenticateAsync(user.Email);
 
@@ -44,9 +44,7 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> SignIn(SignInViewModel register)
         {
-            await _db.Users.AddAsync(new User { Email = register.Email, Password = register.Password });
-
-            await _db.SaveChangesAsync();
+            await _userRepository.AddAsync(new User { Email = register.Email, Password = register.Password });
 
             await AuthenticateAsync(register.Email);
 
