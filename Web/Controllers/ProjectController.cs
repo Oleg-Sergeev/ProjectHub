@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Web.Extensions;
 using Web.ViewModels;
 
@@ -28,7 +25,12 @@ namespace Web.Controllers
 
         public async Task<IActionResult> About(int id)
         {
-            return View(await _projectRepository.GetByIdWithAuthorsAsync(id));
+            var project = await _projectRepository.GetByIdWithAuthorsAsync(id);
+
+            if (project is null) return NotFound();
+
+
+            return View(project);
         }
 
         public async Task<IActionResult> Create()
@@ -41,6 +43,9 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(ProjectViewModel projectVM)
         {
+            if (!ModelState.IsValid) return RedirectToAction();
+
+
             var project = new Project()
             {
                 Name = projectVM.Name,
@@ -56,12 +61,15 @@ namespace Web.Controllers
         {
             var project = await _projectRepository.GetByIdWithAuthorsAsync(id);
 
+            if (project is null) return NotFound();
+
+
             var projectVM = new ProjectViewModel
             {
                 Id = project.Id,
                 Name = project.Name,
                 Description = project.Description,
-                AuthorsId = project.Authors.Select(a => a.Id)
+                AuthorsId = project.Authors.Select(a => a.Id).ToList()
             };
 
             ViewBag.Authors = await _authorRepository.CreateMultiSelectListAsync("Id", "FullName", projectVM.AuthorsId);
@@ -72,7 +80,12 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(int id, ProjectViewModel editedProjectVM)
         {
+            if (!ModelState.IsValid) return RedirectToAction();
+
             var project = await _projectRepository.GetByIdWithAuthorsAsync(id);
+
+            if (project is null) return NotFound();
+
 
             project.Name = editedProjectVM.Name;
             project.Description = editedProjectVM.Description;
@@ -86,7 +99,12 @@ namespace Web.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            return View(await _projectRepository.GetByIdWithAuthorsAsync(id));
+            var project = await _projectRepository.GetByIdWithAuthorsAsync(id);
+
+            if (project is null) return NotFound();
+
+
+            return View(project);
         }
 
         [HttpPost]
@@ -95,19 +113,12 @@ namespace Web.Controllers
         {
             var project = await _projectRepository.GetByIdAsync(id);
 
+            if (project is null) return NotFound();
+
+
             await _projectRepository.RemoveAsync(project);
 
             return Redirect("~/");
-        }
-
-
-
-
-        private async Task<MultiSelectList> GetProjectsMultiSelectListAsync(IEnumerable selectedValues = default)
-        {
-            var authors = await _authorRepository.GetAllListAsync(false);
-
-            return new MultiSelectList(authors, "Id", "FullName", selectedValues);
         }
     }
 }

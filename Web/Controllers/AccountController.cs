@@ -14,11 +14,11 @@ namespace Web.Controllers
     {
         private readonly IAsyncRepository<User> _userRepository;
 
+
         public AccountController(IAsyncRepository<User> userRepository)
         {
             _userRepository = userRepository;
         }
-
 
         public IActionResult Login()
         {
@@ -26,13 +26,14 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel login)
+        public async Task<IActionResult> Login(LoginViewModel login, string returnUrl)
         {
             var user = await _userRepository.FirstAsync(u => u.Email == login.Email && u.Password == login.Password);
 
             await AuthenticateAsync(user.Email);
 
-            return RedirectToAction("Index", "Home");
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+            else return RedirectToAction("Index", "Home");
         }
 
 

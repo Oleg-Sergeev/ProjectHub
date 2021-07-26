@@ -9,7 +9,7 @@
         else
         {
             <li class="nav-item">
-                <a class="mx-1 btn btn-outline-primary" asp-controller="Account" asp-action="Login" role="button">Login</a>
+                <a class="mx-1 btn btn-outline-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" role="button">Login</a>
             </li>
             <li class="nav-item">
                 <a class="mx-1 btn btn-outline-secondary" asp-controller="Account" asp-action="SignIn" role="button">SignIn</a>

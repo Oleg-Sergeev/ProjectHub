@@ -27,7 +27,8 @@ namespace Web.Controllers
         {
             var author = await _authorRepository.GetByIdWithProjectsAsync(id);
 
-            if (author == null) return NotFound();
+            if (author is null) return NotFound();
+
 
             return View(author);
         }
@@ -42,27 +43,34 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(AuthorViewModel authorVM)
         {
+            if (!ModelState.IsValid) return RedirectToAction();
+
+
             var author = new Author()
             {
                 FirstName = authorVM.FirstName,
                 LastName = authorVM.LastName,
-                Projects = await _projectRepository.WhereToListAsync(p => authorVM.ProjectsId != null && authorVM.ProjectsId.Contains(p.Id))
+                Projects = await _projectRepository.WhereToListAsync(p => authorVM.ProjectsId.Contains(p.Id))
             };
+
             await _authorRepository.AddAsync(author);
 
-            return Redirect("~/");
+            return RedirectToAction(nameof(About), new { author.Id });
         }
 
         public async Task<IActionResult> Edit(int id)
         {
             var author = await _authorRepository.GetByIdWithProjectsAsync(id);
 
+            if (author is null) return NotFound();
+
+
             var authorVM = new AuthorViewModel
             {
                 Id = author.Id,
                 FirstName = author.FirstName,
                 LastName = author.LastName,
-                ProjectsId = author.Projects.Select(p => p.Id)
+                ProjectsId = author.Projects.Select(p => p.Id).ToList()
             };
 
             ViewBag.Projects = await _projectRepository.CreateMultiSelectListAsync("Id", "Name", authorVM.ProjectsId);
@@ -73,7 +81,12 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(int id, AuthorViewModel editedAuthorVM)
         {
+            if (!ModelState.IsValid) return RedirectToAction();
+
             var author = await _authorRepository.GetByIdWithProjectsAsync(id);
+
+            if (author is null) return NotFound();
+
 
             author.FirstName = editedAuthorVM.FirstName;
             author.LastName = editedAuthorVM.LastName;
@@ -87,7 +100,12 @@ namespace Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            return View(await _authorRepository.GetByIdWithProjectsAsync(id));
+            var author = await _authorRepository.GetByIdWithProjectsAsync(id);
+
+            if (author is null) return NotFound();
+
+
+            return View(author);
         }
 
         [HttpPost]
@@ -97,6 +115,7 @@ namespace Web.Controllers
             var author = await _authorRepository.GetByIdAsync(id);
 
             if (author is null) return NotFound();
+
 
             await _authorRepository.RemoveAsync(author);
 

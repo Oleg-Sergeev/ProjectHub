@@ -14,19 +14,17 @@
 <div>
     @foreach (var project in Model.Projects)
     {
-        <div class="container my-3">
-            <div class="rounded-lg" style="background-color: #f5f5f5;">
-                <div class="h4">
-                    @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id })
-                </div>
-                <div class="w-auto m-3 text-right">
-                    @foreach (var author in project.Authors)
-                    {
-                        <div class="w-auto small">
-                            <a href="~/Author/About/@author.Id">@author.FullName</a>
-                        </div>
-                    }
-                </div>
+        <div class="container my-3 rounded-lg" style="background-color: #f5f5f5;">
+            <div class="h4">
+                @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id })
+            </div>
+            <div class="w-auto m-3 text-right">
+                @foreach (var author in project.Authors)
+                {
+                    <div class="w-auto small">
+                        <a href="~/Author/About/@author.Id">@author.FullName</a>
+                    </div>
+                }
             </div>
         </div>
     }

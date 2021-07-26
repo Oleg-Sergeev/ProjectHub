@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -18,7 +19,7 @@ namespace Web.Extensions
         public static async Task<MultiSelectList> CreateMultiSelectListAsync<T>(this IAsyncRepository<T> repository, string value, string display, IEnumerable selectedValues = default)
             where T : BaseEntity
         {
-            var items = await repository.GetAllListAsync(false);
+            var items = await repository.GetAllListAsync(false) ?? new List<T>();
 
             return new MultiSelectList(items, value, display, selectedValues);
         }

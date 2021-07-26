@@ -5,6 +5,6 @@ namespace Web.ViewModels
 {
     public class ProjectViewModel : ProjectDTO
     {
-        public IEnumerable<int> AuthorsId { get; set; }
+        public List<int> AuthorsId { get; set; } = new ();
     }
 }

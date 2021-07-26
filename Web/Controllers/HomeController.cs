@@ -10,16 +10,20 @@ namespace Web.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IAuthorRepository _authorRepository;
         private readonly IProjectRepository _projectRepository;
 
 
-        public HomeController(IProjectRepository projectRepository)
+        public HomeController(IProjectRepository projectRepository, IAuthorRepository authorRepository)
         {
             _projectRepository = projectRepository;
+            _authorRepository = authorRepository;
         }
 
         public async Task<IActionResult> Index(int page = 1)
         {
+            if (page < 1) page = 1;
+
             var pageSize = 3;
 
             var projectsCount = await _projectRepository.CountAsync();
@@ -39,6 +43,14 @@ namespace Web.Controllers
 
             return View(indexVM);
         }
+
+        public async Task<IActionResult> Authors()
+        {
+            var authors = await _authorRepository.GetAllListAsync(false);
+
+            return View(authors);
+        }
+
 
         public IActionResult Privacy()
         {

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -52,36 +49,79 @@ namespace UnitTests.Web.ControllersTests
         }
 
 
-        [TestMethod]
-        public async Task CreatePOST_ReturnCreateViewIfModelIsNotValid()
+        [DataTestMethod]
+        [DynamicData(nameof(GetAuthorViewModels), DynamicDataSourceType.Method)]
+        public async Task CreatePOST_ReturnCreateViewIfModelIsNotValid(AuthorViewModel authorViewModel)
         {
             var authorMock = new Mock<IAuthorRepository>();
             var projectMock = new Mock<IProjectRepository>();
 
-            var authorVM = new AuthorViewModel()
-            {
-                Id = 1,
-                FirstName = "",
-                LastName = null,
-                ProjectsId = null
-            };
+            projectMock.Setup(x => x.WhereToListAsync(p => authorViewModel.ProjectsId.Contains(p.Id), default)).ReturnsAsync(new List<Project>());
 
-            projectMock.Setup(x => x.WhereToListAsync(p => authorVM.ProjectsId.Contains(p.Id), default)).ReturnsAsync(default(List<Project>));
+
             authorMock.Setup(x => x.AddAsync(It.IsAny<Author>(), default)).ThrowsAsync(new DbUpdateException("Sql exception"));
 
             AuthorController controller = new(authorMock.Object, projectMock.Object);
+            controller.ModelState.AddModelError("error", "invalid model");
 
             try
             {
-                var result = await controller.Create(authorVM);
+                var result = await controller.Create(authorViewModel);
 
                 Assert.IsInstanceOfType(result, typeof(ViewResult));
             }
             catch (Exception e)
             {
-                Assert.Fail(e.Message);
+                Assert.Fail($"{e.Message}\n{e.StackTrace}");
             }
         }
+
+        private static IEnumerable<object[]> GetAuthorViewModels()
+        {
+            yield return new object[]{ new AuthorViewModel()
+            {
+                Id = 1,
+                FirstName = null,
+                LastName = null
+            }};
+            yield return new object[]{ new AuthorViewModel()
+            {
+                Id = 2,
+                FirstName = "",
+                LastName = ""
+            }};
+            yield return new object[]{ new AuthorViewModel()
+            {
+                Id = 3,
+                FirstName = "   ",
+                LastName = "   "
+            }};
+            yield return new object[]{ new AuthorViewModel()
+            {
+                Id = 4,
+                FirstName = "Oleg",
+                LastName = "    "
+            }};
+            yield return new object[]{ new AuthorViewModel()
+            {
+                Id = 5,
+                FirstName = "O",
+                LastName = "Sergeev"
+            }};
+            yield return new object[]{ new AuthorViewModel()
+            {
+                Id = 6,
+                FirstName = "Oleg",
+                LastName = "S"
+            }};
+            yield return new object[]{ new AuthorViewModel()
+            {
+                Id = 7,
+                FirstName = "O   ",
+                LastName = "S    "
+            }};
+        }
+
 
         [TestMethod]
         public async Task CreatePOST_NotThrowIfAuthorHasNotProjects()
