@@ -26,7 +26,11 @@ namespace Web
             options.UseSqlServer(Configuration.GetConnectionString("DefaultSQLServer")));
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options => options.LoginPath = "/Account/Login");
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                    options.AccessDeniedPath = "/Account/Login";
+                });
 
 
             services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));

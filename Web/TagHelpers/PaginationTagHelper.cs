@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Text.Encodings.Web;
+using Infrastructure.Data.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Infrastructure.Data.Pagination;
 
 namespace Web.TagHelpers
 {

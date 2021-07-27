@@ -1,6 +1,7 @@
 ﻿@model Infrastructure.Data.Pagination.PagedResult<Project>
 @{
     ViewData["Title"] = "Project hub";
+    var isAdmin = Context.User.IsInRole(Constants.AdminRoleName);
 }
 
 <h1>Project hub</h1>
@@ -8,22 +9,29 @@
 <div class="container">
     @foreach (var project in Model.Items)
     {
-        <div class="container my-3 rounded-lg" style="background-color: #f5f5f5;">
-            <div class="h4">
-                @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id })
-            </div>
-            <div class="w-auto m-3 text-right">
-                @foreach (var author in project.Authors)
-                {
-                    <div class="w-auto small">
-                        <a href="~/Author/About/@author.Id">@author.FullName</a>
-                    </div>
-                }
-            </div>
+    <div class="container my-3 rounded-lg" style="background-color: #f5f5f5;">
+        <div class="h4">
+            @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id })
         </div>
+        <div class="w-auto mx-2 mt-2 text-right">
+            @foreach (var author in project.Authors)
+            {
+                <div class="w-auto small">
+                    <a href="~/Author/About/@author.Id">@author.FullName</a>
+                </div>
+            }
+        </div>
+        @if (isAdmin)
+        {
+            <div class="m-2 d-flex justify-content-end ">
+                <a class="text-warning mx-1" asp-controller="Project" asp-action="Edit" asp-route-id="@project.Id" role="button">Edit</a>
+                <a class="text-danger mx-1" asp-controller="Project" asp-action="Delete" asp-route-id="@project.Id" role="button">Delete</a>
+            </div>
+        }
+    </div>
     }
 
-    @if (Context.User.IsInRole("admin"))
+    @if (isAdmin)
     {
         <div class="m-2 d-flex justify-content-end ">
             <a class="btn btn-primary mx-1" asp-controller="Project" asp-action="Create" role="button">New project</a>

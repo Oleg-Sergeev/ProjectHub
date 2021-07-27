@@ -22,7 +22,7 @@
     </div>
     <div>
         <button type="submit" class="btn btn-primary">Submit</button>
-        <a class="btn btn-primary" asp-controller="Home" asp-action="Index" role="button">Cancel</a>
+        <a class="btn btn-primary" href="@Context.Request.Headers["Referer"]" role="button">Cancel</a>
     </div>
 </form>
 

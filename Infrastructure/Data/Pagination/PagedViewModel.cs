@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Infrastructure.Data.Pagination
+﻿namespace Infrastructure.Data.Pagination
 {
     public class PagedViewModel
     {

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.Data;
+using Infrastructure.Data.Authorization;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,6 +42,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Create(AuthorViewModel authorVM)
         {
             if (!ModelState.IsValid) return RedirectToAction();
@@ -58,6 +60,7 @@ namespace Web.Controllers
             return RedirectToAction(nameof(About), new { author.Id });
         }
 
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Edit(int id)
         {
             var author = await _authorRepository.GetByIdWithProjectsAsync(id);
@@ -79,6 +82,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Edit(int id, AuthorViewModel editedAuthorVM)
         {
             if (!ModelState.IsValid) return RedirectToAction();
@@ -98,6 +102,7 @@ namespace Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Delete(int id)
         {
             var author = await _authorRepository.GetByIdWithProjectsAsync(id);
@@ -110,6 +115,7 @@ namespace Web.Controllers
 
         [HttpPost]
         [ActionName("Delete")]
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> DeletePost(int id)
         {
             var author = await _authorRepository.GetByIdAsync(id);

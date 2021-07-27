@@ -7,6 +7,7 @@
 <h1>Login</h1>
 
 <div class="container w-50">
+    <div class="validation" asp-validation-summary="All"></div>
     <form method="post">
         <div class="form-group">
             <label asp-for="Email"></label>
@@ -19,7 +20,7 @@
             <span asp-validation-for="Password"></span>
         </div>
         <div>
-            <button type="submit" class="btn btn-primary" >Login</button>
+            <button type="submit" class="btn btn-primary">Login</button>
             <a class="btn btn-outline-secondary" asp-action="SignIn" role="button">SignIn</a>
         </div>
     </form>

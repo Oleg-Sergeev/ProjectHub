@@ -2,7 +2,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.Data;
+using Infrastructure.Data.Authorization;
 using Infrastructure.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web.ViewModels;
@@ -23,7 +25,7 @@ namespace Web.Controllers
         {
             if (page < 1) page = 1;
 
-            var pageSize = 1;
+            var pageSize = 5;
 
             var pagedProjects = await _db.Projects
                 .OrderBy(p => p.Id)
@@ -34,11 +36,12 @@ namespace Web.Controllers
             return View(pagedProjects);
         }
 
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Authors(int page = 1)
         {
             if (page < 1) page = 1;
 
-            var pageSize = 1;
+            var pageSize = 5;
 
             var pagedAuthors = await _db.Authors
                 .OrderBy(a => a.Id)

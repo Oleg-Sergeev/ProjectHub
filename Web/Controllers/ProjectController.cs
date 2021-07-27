@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.Data;
+using Infrastructure.Data.Authorization;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,7 @@ namespace Web.Controllers
             return View(project);
         }
 
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Create()
         {
             ViewBag.Authors = await _authorRepository.CreateMultiSelectListAsync("Id", "FullName");
@@ -41,6 +43,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Create(ProjectViewModel projectVM)
         {
             if (!ModelState.IsValid) return RedirectToAction();
@@ -49,6 +52,7 @@ namespace Web.Controllers
             var project = new Project()
             {
                 Name = projectVM.Name,
+                CreatedAt = projectVM.CreatedAt,
                 Authors = await _authorRepository.WhereToListAsync(a => projectVM.AuthorsId.Contains(a.Id))
             };
 
@@ -57,6 +61,7 @@ namespace Web.Controllers
             return RedirectToAction(nameof(About), new { project.Id });
         }
 
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Edit(int id)
         {
             var project = await _projectRepository.GetByIdWithAuthorsAsync(id);
@@ -69,6 +74,7 @@ namespace Web.Controllers
                 Id = project.Id,
                 Name = project.Name,
                 Description = project.Description,
+                CreatedAt = project.CreatedAt,
                 AuthorsId = project.Authors.Select(a => a.Id).ToList()
             };
 
@@ -78,6 +84,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Edit(int id, ProjectViewModel editedProjectVM)
         {
             if (!ModelState.IsValid) return RedirectToAction();
@@ -89,6 +96,7 @@ namespace Web.Controllers
 
             project.Name = editedProjectVM.Name;
             project.Description = editedProjectVM.Description;
+            project.CreatedAt = editedProjectVM.CreatedAt;
             project.Authors = await _authorRepository.WhereToListAsync(a => editedProjectVM.AuthorsId.Contains(a.Id));
 
             await _projectRepository.UpdateAsync(project);
@@ -97,6 +105,7 @@ namespace Web.Controllers
         }
 
 
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Delete(int id)
         {
             var project = await _projectRepository.GetByIdWithAuthorsAsync(id);
@@ -109,6 +118,7 @@ namespace Web.Controllers
 
         [HttpPost]
         [ActionName("Delete")]
+        [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> DeletePost(int id)
         {
             var project = await _projectRepository.GetByIdAsync(id);
@@ -118,7 +128,8 @@ namespace Web.Controllers
 
             await _projectRepository.RemoveAsync(project);
 
-            return Redirect("~/");
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }

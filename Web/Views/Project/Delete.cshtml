@@ -20,7 +20,7 @@
             }
         </p>
 
-        <a class="btn btn-primary" asp-action="About" asp-route-id="@Model.Id" role="button">Cancel</a>
+        <a class="btn btn-primary" href="@Context.Request.Headers["Referer"]" role="button">Cancel</a>
         <form class="d-inline" method="post">
             <button class="btn btn-danger" asp-action="Delete" asp-route-id="@Model.Id" role="button">Delete</button>
         </form>

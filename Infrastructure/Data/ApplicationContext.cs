@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Infrastructure.Data.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
 {
@@ -10,6 +11,8 @@ namespace Infrastructure.Data
 
         public DbSet<User> Users { get; set; }
 
+        public DbSet<Role> Roles { get; set; }
+
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
         {
@@ -19,7 +22,9 @@ namespace Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
         }
     }
 }
