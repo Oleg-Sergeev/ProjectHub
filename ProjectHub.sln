@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProjectHubDTO", "ProjectHub
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{2AD7DB7F-8940-4D7A-AF5B-A5C3C3F0A2F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E6E24361-6CDD-42FC-A13A-4A323CCA3088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E6E24361-6CDD-42FC-A13A-4A323CCA3088}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

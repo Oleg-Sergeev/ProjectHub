@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Author>
+﻿@model Infrastructure.Data.Pagination.PagedResult<Author>
 @{
     ViewData["Title"] = $"Authors";
 }
@@ -6,7 +6,7 @@
 <h1>Authors</h1>
 
 <div class="container">
-    @foreach (var author in Model)
+    @foreach (var author in Model.Items)
     {
         <div class="container my-4 rounded-lg" style="background-color: #f5f5f5;">
             <div class="h4 d-flex flex-column">
@@ -21,4 +21,6 @@
             </div>
         </div>
     }
+
+    <pagination paged-model="Model.PageViewModel" />
 </div>

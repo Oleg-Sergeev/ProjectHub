@@ -1,54 +1,51 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Infrastructure.Interfaces;
+using Infrastructure.Data;
+using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Web.ViewModels;
-using Web.ViewModels.Pagination;
 
 namespace Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IAuthorRepository _authorRepository;
-        private readonly IProjectRepository _projectRepository;
+        private readonly ApplicationContext _db;
 
 
-        public HomeController(IProjectRepository projectRepository, IAuthorRepository authorRepository)
+        public HomeController(ApplicationContext db)
         {
-            _projectRepository = projectRepository;
-            _authorRepository = authorRepository;
+            _db = db;
         }
 
         public async Task<IActionResult> Index(int page = 1)
         {
             if (page < 1) page = 1;
 
-            var pageSize = 3;
+            var pageSize = 1;
 
-            var projectsCount = await _projectRepository.CountAsync();
-
-            var pagedProjects = _projectRepository
-                .WithAuthors()
+            var pagedProjects = await _db.Projects
                 .OrderBy(p => p.Id)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+                .Include(p => p.Authors)
+                .GetPagedAsync(page, pageSize);
 
-            PageViewModel pageVM = new(page, projectsCount, pageSize);
 
-            IndexViewModel indexVM = new(pagedProjects, pageVM);
-
-            ViewBag.Page = page;
-
-            return View(indexVM);
+            return View(pagedProjects);
         }
 
-        public async Task<IActionResult> Authors()
+        public async Task<IActionResult> Authors(int page = 1)
         {
-            var authors = await _authorRepository.GetAllListAsync(false);
+            if (page < 1) page = 1;
 
-            return View(authors);
+            var pageSize = 1;
+
+            var pagedAuthors = await _db.Authors
+                .OrderBy(a => a.Id)
+                .GetPagedAsync(page, pageSize);
+
+
+            return View(pagedAuthors);
         }
 
 
