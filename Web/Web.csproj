@@ -17,4 +17,8 @@
     <ProjectReference Include="..\ProjectHubDTO\ProjectHubDTO.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
 </Project>

@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Infrastructure.Data;
-using Infrastructure.Interfaces;
+using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Web.Controllers;
 using Web.ViewModels;
 
@@ -15,16 +14,26 @@ namespace UnitTests.Web.ControllersTests
     [TestClass]
     public class AuthorControllerTests
     {
+        private readonly ApplicationContext _db;
+
+
+        public AuthorControllerTests()
+        {
+            var dbOptions = new DbContextOptionsBuilder<ApplicationContext>()
+                .UseInMemoryDatabase(databaseName: "TestApplication")
+                .Options;
+
+            _db = new(dbOptions);
+
+            _db.SeedAsync().Wait();
+        }
+
         [TestMethod]
         public void About_ReturnNotFoundIfAuthorNotFound()
         {
-            var mock = new Mock<IAuthorRepository>();
-
             int id = -123;
 
-            mock.Setup(x => x.GetByIdWithProjectsAsync(id, default)).ReturnsAsync(default(Author));
-
-            AuthorController controller = new(mock.Object, null);
+            AuthorController controller = new(_db);
 
             IActionResult result = controller.About(id).Result;
 
@@ -35,13 +44,9 @@ namespace UnitTests.Web.ControllersTests
         [TestMethod]
         public void About_ReturnViewIfAuthorFound()
         {
-            var mock = new Mock<IAuthorRepository>();
-
             int id = 1;
 
-            mock.Setup(x => x.GetByIdWithProjectsAsync(id, default)).ReturnsAsync(new Author { Id = 1, FirstName = "Oleg", LastName = "Sergeev" });
-
-            AuthorController controller = new(mock.Object, null);
+            AuthorController controller = new(_db);
 
             IActionResult result = controller.About(id).Result;
 
@@ -51,24 +56,16 @@ namespace UnitTests.Web.ControllersTests
 
         [DataTestMethod]
         [DynamicData(nameof(GetAuthorViewModels), DynamicDataSourceType.Method)]
-        public async Task CreatePOST_ReturnCreateViewIfModelIsNotValid(AuthorViewModel authorViewModel)
+        public async Task CreatePOST_ReturnRedirectToActionIfModelIsNotValid(AuthorViewModel authorViewModel)
         {
-            var authorMock = new Mock<IAuthorRepository>();
-            var projectMock = new Mock<IProjectRepository>();
-
-            projectMock.Setup(x => x.WhereToListAsync(p => authorViewModel.ProjectsId.Contains(p.Id), default)).ReturnsAsync(new List<Project>());
-
-
-            authorMock.Setup(x => x.AddAsync(It.IsAny<Author>(), default)).ThrowsAsync(new DbUpdateException("Sql exception"));
-
-            AuthorController controller = new(authorMock.Object, projectMock.Object);
+            AuthorController controller = new(_db);
             controller.ModelState.AddModelError("error", "invalid model");
 
             try
             {
                 var result = await controller.Create(authorViewModel);
 
-                Assert.IsInstanceOfType(result, typeof(ViewResult));
+                Assert.IsInstanceOfType(result, typeof(RedirectToActionResult));
             }
             catch (Exception e)
             {
@@ -126,9 +123,6 @@ namespace UnitTests.Web.ControllersTests
         [TestMethod]
         public async Task CreatePOST_NotThrowIfAuthorHasNotProjects()
         {
-            var authorMock = new Mock<IAuthorRepository>();
-            var projectMock = new Mock<IProjectRepository>();
-
             var authorVM = new AuthorViewModel()
             {
                 Id = 1,
@@ -137,9 +131,7 @@ namespace UnitTests.Web.ControllersTests
                 ProjectsId = null
             };
 
-            projectMock.Setup(x => x.WhereToListAsync(p => authorVM.ProjectsId.Contains(p.Id), default));
-
-            AuthorController controller = new(authorMock.Object, projectMock.Object);
+            AuthorController controller = new(_db);
 
 
             await controller.Create(authorVM);
