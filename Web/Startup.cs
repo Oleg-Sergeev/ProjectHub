@@ -1,4 +1,6 @@
 using Infrastructure.Data;
+using Infrastructure.Interfaces;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,6 +35,8 @@ namespace Web
 
 
             services.AddControllersWithViews();
+
+            services.AddTransient<IEmailSender, EmailSender>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -3,6 +3,11 @@
         @if (Context.User.Identity.IsAuthenticated)
         {
             <li class="nav-item">
+                <div class="nav-link">
+                    @Context.User.Identity.Name
+                </div>
+            </li>
+            <li class="nav-item">
                 <a class="mx-1 btn btn-outline-secondary" asp-controller="Account" asp-action="Logout" role="button">Logout</a>
             </li>
         }

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Infrastructure.Data;
 using Infrastructure.Data.Authorization;
@@ -105,12 +107,16 @@ namespace Infrastructure.Extensions
                 new()
                 {
                     Email = "admin@admin.com",
-                    Password = new PasswordHasher<User>().HashPassword(null, "admin123")
+                    PasswordHash = new PasswordHasher<User>().HashPassword(null, "admin123"),
+                    SecretKey = Convert.ToBase64String(new HMACSHA256().Key),
+                    HasConfirmedEmail = true
                 },
                 new()
                 {
                     Email = "user@user.com",
-                    Password = new PasswordHasher<User>().HashPassword(null, "user123")
+                    PasswordHash = new PasswordHasher<User>().HashPassword(null, "user123"),
+                    SecretKey = Convert.ToBase64String(new HMACSHA256().Key),
+                    HasConfirmedEmail = true
                 }
             };
 

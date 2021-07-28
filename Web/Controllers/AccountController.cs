@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Infrastructure.Data;
 using Infrastructure.Data.Authorization;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -17,10 +20,13 @@ namespace Web.Controllers
     {
         private readonly ApplicationContext _db;
 
+        private readonly IEmailSender _emailSender;
 
-        public AccountController(ApplicationContext db)
+
+        public AccountController(ApplicationContext db, IEmailSender emailSender)
         {
             _db = db;
+            _emailSender = emailSender;
         }
 
         [HttpGet]
@@ -38,11 +44,17 @@ namespace Web.Controllers
                     .Include(u => u.Role)
                     .FirstOrDefaultAsync(u => u.Email == login.Email);
 
-
                 if (user != null)
                 {
+                    if (!user.HasConfirmedEmail)
+                    {
+                        ModelState.AddModelError("", "Email is not confirmed");
+
+                        return View(login);
+                    }
+
                     PasswordHasher<User> passwordHasher = new();
-                    var result = passwordHasher.VerifyHashedPassword(user, user.Password, login.Password);
+                    var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, login.Password);
 
                     if (result != PasswordVerificationResult.Failed)
                     {
@@ -78,22 +90,78 @@ namespace Web.Controllers
                     user = new()
                     {
                         Email = signIn.Email,
-                        Password = new PasswordHasher<User>().HashPassword(null, signIn.Password),
-                        Role = await _db.Roles.FirstAsync(r => r.Name == Constants.UserRoleName)
+                        PasswordHash = new PasswordHasher<User>().HashPassword(null, signIn.Password),
+                        Role = await _db.Roles.FirstAsync(r => r.Name == Constants.UserRoleName),
+                        SecretKey = Convert.ToBase64String(new HMACSHA256().Key)
                     };
-
 
                     await _db.Users.AddAsync(user);
                     await _db.SaveChangesAsync();
 
-                    await AuthenticateAsync(user);
+                    var timeStep = DateTime.Now.Ticks;
+                    var code = new PasswordHasher<User>().HashPassword(null, $"{user.SecretKey}{user.Email}{user.PasswordHash}");
 
-                    return RedirectToAction("Index", "Home");
+                    var confirmUrl = Url.Action(
+                        "ConfirmEmail",
+                        "Account",
+                        new { userId = user.Id, code },
+                        protocol: HttpContext.Request.Scheme);
+
+                    await _emailSender.SendEmailAsync(user.Email, "Confirm your email", $"<a href='{confirmUrl}'>Confirm email</a>");
+
+                    return Content("Confirm your email");
                 }
-                else ModelState.AddModelError("", "Email is already in use");
+
+                ModelState.AddModelError("", "Email is already in use");
             }
 
             return View(signIn);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(int? userId, string code)
+        {
+            var signIn = nameof(SignIn);
+
+            ModelState.AddModelError("", "Email is not confirmed");
+
+
+            if (userId == null || code == null) return View(signIn);
+
+
+            var user = await _db.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+
+            if (user == null) return View(signIn);
+
+
+            PasswordHasher<User> passwordHasher = new();
+
+            try
+            {
+                var result = passwordHasher.VerifyHashedPassword(user, code, $"{user.SecretKey}{user.Email}{user.PasswordHash}");
+
+                if (result == PasswordVerificationResult.Failed) return View(signIn);
+            }
+            catch
+            {
+                return View(signIn);
+            }
+
+
+
+            await AuthenticateAsync(user);
+
+            user.HasConfirmedEmail = true;
+            await _db.SaveChangesAsync();
+
+
+            ModelState.Remove("");
+
+            return RedirectToAction("Index", "Home");
         }
 
 
