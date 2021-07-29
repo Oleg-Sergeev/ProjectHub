@@ -1,33 +1,44 @@
 ﻿using System.Threading.Tasks;
+using Infrastructure.Data;
 using Infrastructure.Interfaces;
+using Infrastructure.Settings;
 using MailKit.Net.Smtp;
+using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace Infrastructure.Services
 {
     public class EmailSender : IEmailSender
     {
-        private const string SenderName = "Projects hub";
-        private const string FromEmailName = "csharpclr@gmail.com";
-        private const string FromEmailPassword = "ZixxanGames777";
+        private readonly MailSettings _mailSettings;
 
-        public async Task SendEmailAsync(string email, string subject, string text)
+
+        public EmailSender(IOptions<MailSettings> mailSettings)
+        {
+            _mailSettings = mailSettings.Value;
+        }
+
+
+        public async Task SendEmailAsync(MailRequest mailRequest)
         {
             var message = new MimeMessage()
             {
-                Subject = subject
+                Subject = mailRequest.Subject,
+                Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                {
+                    Text = mailRequest.Body
+                },
+                Priority = mailRequest.MessagePriority,
+                Sender = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail)
             };
-            message.From.Add(new MailboxAddress(SenderName, FromEmailName));
-            message.To.Add(MailboxAddress.Parse(email));
 
-            message.Body = new TextPart(MimeKit.Text.TextFormat.Html)
-            {
-                Text = text
-            };
+            message.To.Add(MailboxAddress.Parse(mailRequest.ToEmail));
+
 
             using var client = new SmtpClient();
-            await client.ConnectAsync("smtp.gmail.com", 587, false);
-            await client.AuthenticateAsync(FromEmailName, FromEmailPassword);
+
+            await client.ConnectAsync(_mailSettings.Host, _mailSettings.Port, _mailSettings.UseSsl);
+            await client.AuthenticateAsync(_mailSettings.Mail, _mailSettings.Password);
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -9,9 +10,11 @@ using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Web.ViewModels.Account;
 
 namespace Web.Controllers
@@ -22,11 +25,14 @@ namespace Web.Controllers
 
         private readonly IEmailSender _emailSender;
 
+        private readonly IWebHostEnvironment _environment;
 
-        public AccountController(ApplicationContext db, IEmailSender emailSender)
+
+        public AccountController(ApplicationContext db, IEmailSender emailSender, IWebHostEnvironment environment)
         {
             _db = db;
             _emailSender = emailSender;
+            _environment = environment;
         }
 
         [HttpGet]
@@ -107,7 +113,27 @@ namespace Web.Controllers
                         new { userId = user.Id, code },
                         protocol: HttpContext.Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(user.Email, "Confirm your email", $"<a href='{confirmUrl}'>Confirm email</a>");
+
+                    string filePath = @$"{_environment.WebRootPath}\EmailVerificationTemplate.html";
+
+                    var body = "";
+                    using (StreamReader str = new(filePath))
+                    {
+                        body = await str.ReadToEndAsync();
+                    }
+                    body = body.Replace("[confirmUrl]", confirmUrl).Replace("[email]", user.Email);
+
+
+                    var verificationMailRequest = new MailRequest()
+                    {
+                        ToEmail = user.Email,
+                        Subject = "Complete registration",
+                        Body = body,
+                        MessagePriority = MimeKit.MessagePriority.Urgent
+                    };
+
+                    await _emailSender.SendEmailAsync(verificationMailRequest);
+
 
                     return Content("Confirm your email");
                 }
