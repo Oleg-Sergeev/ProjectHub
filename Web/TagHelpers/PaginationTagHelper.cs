@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using Infrastructure.Data.Pagination;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace Web.TagHelpers
         private const string PageItemCss = "page-item";
         private const string PageLinkCss = "page-link";
         private const string ActiveCss = "active";
+        private const string DisabledCss = "disabled";
 
         private const int PageCount = 7;
 
@@ -30,6 +32,9 @@ namespace Web.TagHelpers
 
         public PagedViewModel PagedModel { get; set; }
 
+        [HtmlAttributeName(DictionaryAttributePrefix = "page-url-")]
+        public Dictionary<string, object> PageUrlValues { get; set; } = new Dictionary<string, object>();
+
 
         public PaginationTagHelper(IUrlHelperFactory urlHelperFactory)
         {
@@ -41,14 +46,12 @@ namespace Web.TagHelpers
         {
             if (PagedModel == null) return;
 
-
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(ViewContext);
 
             output.TagName = "div";
             output.AddClass(ContainerCss, HtmlEncoder.Default);
 
             var ul = new TagBuilder("ul");
-
             ul.AddCssClass(PaginationCss);
 
 
@@ -59,8 +62,8 @@ namespace Web.TagHelpers
 
             var action = ViewContext.RouteData.Values["action"].ToString();
 
-
             var firstPage = BuildPageLink(1, "«");
+            if (PagedModel.CurrentPage == 1) firstPage.AddCssClass(DisabledCss);
             ul.InnerHtml.AppendHtml(firstPage);
 
             for (var i = startPage; i <= finishPage; i++)
@@ -72,6 +75,7 @@ namespace Web.TagHelpers
             }
 
             var lastPage = BuildPageLink(PagedModel.TotalPages, "»");
+            if (PagedModel.CurrentPage == PagedModel.TotalPages) lastPage.AddCssClass(DisabledCss);
             ul.InnerHtml.AppendHtml(lastPage);
 
 
@@ -85,9 +89,11 @@ namespace Web.TagHelpers
                 var li = new TagBuilder("li");
                 li.AddCssClass(PageItemCss);
 
+                PageUrlValues["page"] = page;
+
                 var a = new TagBuilder("a");
                 a.AddCssClass(PageLinkCss);
-                a.Attributes["href"] = urlHelper.Action(action, new { page });
+                a.Attributes["href"] = urlHelper.Action(action, PageUrlValues);
                 a.InnerHtml.Append(text ?? page.ToString());
 
                 li.InnerHtml.AppendHtml(a);

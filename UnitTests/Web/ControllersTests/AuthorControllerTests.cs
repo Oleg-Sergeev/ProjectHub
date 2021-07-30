@@ -20,7 +20,7 @@ namespace UnitTests.Web.ControllersTests
         public AuthorControllerTests()
         {
             var dbOptions = new DbContextOptionsBuilder<ApplicationContext>()
-                .UseInMemoryDatabase(databaseName: "TestApplication")
+                .UseInMemoryDatabase("TestApplication")
                 .Options;
 
             _db = new(dbOptions);
