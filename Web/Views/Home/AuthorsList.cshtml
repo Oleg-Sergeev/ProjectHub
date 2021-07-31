@@ -1,4 +1,4 @@
-﻿@model Infrastructure.Data.Pagination.PagedResult<Author>
+﻿@model AuthorsListViewModel
 @{
     ViewData["Title"] = $"Authors";
 }
@@ -11,7 +11,7 @@
         <div class="container my-4 rounded-lg" style="background-color: #f5f5f5;">
             <div class="h4 d-flex flex-column">
                 @Html.ActionLink(author.FullName, "About", "Author", new { id = author.Id })
-
+                
                 <div class="align-self-end">
                     <a class="d-md-none d-inline-block btn-sm btn-outline-warning" asp-controller="Author" asp-action="Edit" asp-route-id="@author.Id" role="button">Edit</a>
                     <a class="d-none d-md-inline-block btn btn-outline-warning" asp-controller="Author" asp-action="Edit" asp-route-id="@author.Id" role="button">Edit</a>
@@ -22,5 +22,5 @@
         </div>
     }
 
-    <pagination paged-model="Model.PageViewModel" />
+    <pagination model="Model.PaginationInfo" />
 </div>

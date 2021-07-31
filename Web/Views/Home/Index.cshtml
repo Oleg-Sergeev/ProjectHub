@@ -1,4 +1,4 @@
-﻿@model Infrastructure.Data.Pagination.PagedResult<Project>
+﻿@model IndexViewModel
 @{
     ViewData["Title"] = "Project hub";
     var isAdmin = Context.User.IsInRole(Constants.AdminRoleName);
@@ -28,7 +28,7 @@
     {
         <div class="container my-3 rounded-lg" style="background-color: #f5f5f5;">
             <div class="h4">
-                @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id })
+                @Html.ActionLink(project.Name, "About", "Project", new { id = project.Id, page = Model.PaginationInfo.CurrentPage })
             </div>
             <div class="w-auto mx-2 mt-2 text-left">
                 @foreach (var author in project.Authors)
@@ -61,7 +61,7 @@
         </div>
     }
 
-    <pagination paged-model="Model.PageViewModel"
+    <pagination model="Model.PaginationInfo"
                 page-url-search="@ViewData["CurrentSearch"]" 
                 page-url-order="@ViewData["CurrentSort"]"/>
 

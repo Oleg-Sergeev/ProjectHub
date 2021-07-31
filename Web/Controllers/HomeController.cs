@@ -1,20 +1,21 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Infrastructure.Data;
-using Infrastructure.Data.Authorization;
-using Infrastructure.Data.Pagination;
-using Infrastructure.Extensions;
+using Infrastructure.Data.Entities;
+using Infrastructure.Data.Entities.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Web.Extensions;
 using Web.ViewModels;
 
 namespace Web.Controllers
 {
     public class HomeController : Controller
     {
+        private const int PageSize = 3;
+
+
         private readonly ApplicationContext _db;
 
 
@@ -22,6 +23,7 @@ namespace Web.Controllers
         {
             _db = db;
         }
+
 
         public async Task<IActionResult> Index(int page = 1, string search = "", string order = "")
         {
@@ -40,13 +42,11 @@ namespace Web.Controllers
 
             if (page < 1) page = 1;
 
-            var pageSize = 2;
-
             IQueryable<Project> query = null;
 
             if (!string.IsNullOrWhiteSpace(search)) query = _db.Projects.Where(p => p.Name.Contains(search));
 
-            query = query == null
+            query = query is null
                 ? _db.Projects.Include(p => p.Authors)
                 : query.Include(p => p.Authors);
 
@@ -58,32 +58,36 @@ namespace Web.Controllers
                 _ => query.OrderBy(p => p.Name)
             };
 
-            var pagedProjects = await query.GetPagedAsync(page, pageSize);
+            var pagedProjects = await query.GetPagedAsync(page, PageSize);
 
+            var indexVM = new IndexViewModel()
+            {
+                Items = pagedProjects,
+                PaginationInfo = new(page, PageSize, await _db.Projects.CountAsync())
+            };
 
-            return View(pagedProjects);
+            return View(indexVM);
         }
 
         [Authorize(Roles = Constants.AdminRoleName)]
-        public async Task<IActionResult> Authors(int page = 1)
+        public async Task<IActionResult> AuthorsList(int page = 1)
         {
             if (page < 1) page = 1;
 
-            var pageSize = 5;
 
             var pagedAuthors = await _db.Authors
-                .OrderBy(a => a.Id)
-                .GetPagedAsync(page, pageSize);
+                .OrderBy(a => a.LastName)
+                .GetPagedAsync(page, PageSize);
 
+            var authorsListVM = new AuthorsListViewModel()
+            {
+                Items = pagedAuthors,
+                PaginationInfo = new(page, PageSize, await _db.Projects.CountAsync())
+            };
 
-            return View(pagedAuthors);
+            return View(authorsListVM);
         }
 
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

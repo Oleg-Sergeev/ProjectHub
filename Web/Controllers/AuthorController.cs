@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using Infrastructure.Data;
-using Infrastructure.Data.Authorization;
+using Infrastructure.Data.Entities;
+using Infrastructure.Data.Entities.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -34,6 +34,7 @@ namespace Web.Controllers
             return View(author);
         }
 
+
         public async Task<IActionResult> Create()
         {
             var items = await _db.Projects.ToListAsync();
@@ -62,6 +63,7 @@ namespace Web.Controllers
 
             return RedirectToAction(nameof(About), new { author.Id });
         }
+
 
         [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Edit(int id)
@@ -110,6 +112,7 @@ namespace Web.Controllers
 
             return RedirectToAction(nameof(About), new { id });
         }
+
 
         [HttpGet]
         [Authorize(Roles = Constants.AdminRoleName)]

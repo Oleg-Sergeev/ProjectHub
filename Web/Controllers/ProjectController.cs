@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using Infrastructure.Data;
-using Infrastructure.Data.Authorization;
+using Infrastructure.Data.Entities;
+using Infrastructure.Data.Entities.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -22,7 +22,7 @@ namespace Web.Controllers
         }
 
 
-        public async Task<IActionResult> About(int id)
+        public async Task<IActionResult> About(int id, int page = 1)
         {
             var project = await _db.Projects
                 .Include(p => p.Authors)
@@ -30,9 +30,10 @@ namespace Web.Controllers
 
             if (project is null) return NotFound();
 
-
+            ViewData["page"] = page;
             return View(project);
         }
+
 
         [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Create()
@@ -63,6 +64,7 @@ namespace Web.Controllers
 
             return RedirectToAction(nameof(About), new { project.Id });
         }
+
 
         [Authorize(Roles = Constants.AdminRoleName)]
         public async Task<IActionResult> Edit(int id)

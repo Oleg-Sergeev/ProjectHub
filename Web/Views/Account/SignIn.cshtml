@@ -6,7 +6,7 @@
 
 <h1>Sign in</h1>
 
-<div class="container w-50">
+<div class="container">
     <div class="validation" asp-validation-summary="All"></div>
     <form asp-action="SignIn">
         <div class="form-group">
@@ -16,12 +16,14 @@
         </div>
         <div class="form-group">
             <label asp-for="Password"></label>
-            <input class="form-control" asp-for="Password" />
+            <input id="password" class="form-control" asp-for="Password" />
+            @await Html.PartialAsync("_ShowPasswordCheckBoxPartial")
             <span asp-validation-for="Password"></span>
         </div>
         <div class="form-group">
             <label asp-for="ConfirmPassword"></label>
-            <input class="form-control" asp-for="ConfirmPassword" />
+            <input id="confirmPassword" class="form-control" asp-for="ConfirmPassword" />
+            @await Html.PartialAsync("_ShowPasswordCheckBoxPartial", "confirmPassword")
             <span asp-validation-for="ConfirmPassword"></span>
         </div>
         <div>

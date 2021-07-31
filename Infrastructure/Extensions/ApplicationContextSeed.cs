@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Infrastructure.Data;
 using Infrastructure.Data.Authorization;
-using Microsoft.AspNetCore.Identity;
+using Infrastructure.Data.Entities;
+using Infrastructure.Data.Entities.Authorization;
 
 namespace Infrastructure.Extensions
 {
@@ -107,15 +105,15 @@ namespace Infrastructure.Extensions
                 new()
                 {
                     Email = "admin@admin.com",
-                    PasswordHash = new PasswordHasher<User>().HashPassword(null, "admin123"),
-                    SecretKey = Convert.ToBase64String(new HMACSHA256().Key),
+                    PasswordHash = UserHasher.HashPassword("admin123"),
+                    SecretKey = UserHasher.CreateSecretKey(),
                     HasConfirmedEmail = true
                 },
                 new()
                 {
                     Email = "user@user.com",
-                    PasswordHash = new PasswordHasher<User>().HashPassword(null, "user123"),
-                    SecretKey = Convert.ToBase64String(new HMACSHA256().Key),
+                    PasswordHash = UserHasher.HashPassword("user123"),
+                    SecretKey = UserHasher.CreateSecretKey(),
                     HasConfirmedEmail = true
                 }
             };

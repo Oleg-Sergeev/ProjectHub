@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Infrastructure.Data;
+using Infrastructure.Data.Entities;
 using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;

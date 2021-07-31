@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Encodings.Web;
-using Infrastructure.Data.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Web.ViewModels.Pagination;
 
 namespace Web.TagHelpers
 {
@@ -30,7 +30,8 @@ namespace Web.TagHelpers
         [HtmlAttributeNotBound]
         public ViewContext ViewContext { get; set; }
 
-        public PagedViewModel PagedModel { get; set; }
+        [HtmlAttributeName("model")]
+        public PaginationInfoViewModel PaginationInfo { get; set; }
 
         [HtmlAttributeName(DictionaryAttributePrefix = "page-url-")]
         public Dictionary<string, object> PageUrlValues { get; set; } = new Dictionary<string, object>();
@@ -44,7 +45,7 @@ namespace Web.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (PagedModel == null) return;
+            if (PaginationInfo == null) return;
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(ViewContext);
 
@@ -57,25 +58,25 @@ namespace Web.TagHelpers
 
             var remainder = (PageCount + 1) % 2;
 
-            var startPage = Math.Max(PagedModel.CurrentPage - PageCount / 2 + remainder, 1);
-            var finishPage = Math.Min(PagedModel.CurrentPage + PageCount / 2, PagedModel.TotalPages);
+            var startPage = Math.Max(PaginationInfo.CurrentPage - PageCount / 2 + remainder, 1);
+            var finishPage = Math.Min(PaginationInfo.CurrentPage + PageCount / 2, PaginationInfo.TotalPages);
 
             var action = ViewContext.RouteData.Values["action"].ToString();
 
             var firstPage = BuildPageLink(1, "«");
-            if (PagedModel.CurrentPage == 1) firstPage.AddCssClass(DisabledCss);
+            if (PaginationInfo.CurrentPage == 1) firstPage.AddCssClass(DisabledCss);
             ul.InnerHtml.AppendHtml(firstPage);
 
             for (var i = startPage; i <= finishPage; i++)
             {
                 var page = BuildPageLink(i);
-                if (PagedModel.CurrentPage == i) page.AddCssClass(ActiveCss);
+                if (PaginationInfo.CurrentPage == i) page.AddCssClass(ActiveCss);
 
                 ul.InnerHtml.AppendHtml(page);
             }
 
-            var lastPage = BuildPageLink(PagedModel.TotalPages, "»");
-            if (PagedModel.CurrentPage == PagedModel.TotalPages) lastPage.AddCssClass(DisabledCss);
+            var lastPage = BuildPageLink(PaginationInfo.TotalPages, "»");
+            if (PaginationInfo.CurrentPage == PaginationInfo.TotalPages) lastPage.AddCssClass(DisabledCss);
             ul.InnerHtml.AppendHtml(lastPage);
 
 

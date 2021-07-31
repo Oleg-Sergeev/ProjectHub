@@ -21,7 +21,7 @@
                         @if (Context.User.IsInRole(Constants.AdminRoleName))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Home" asp-action="Authors">Authors</a>
+                                <a class="nav-link text-dark" asp-controller="Home" asp-action="AuthorsList">Authors</a>
                             </li>
                         }
                     </ul>
@@ -40,7 +40,7 @@
         <div class="container d-flex justify-content-between">
             &copy; 2021 - Projects hub
             <div class="text-right">
-                <a href="https://github.com/Oleg-Sergeev">Github</a>
+                <a target="_blank" href="https://github.com/Oleg-Sergeev/ProjectHub">Github</a>
             </div>
         </div>
     </footer>

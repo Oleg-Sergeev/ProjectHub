@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Infrastructure.Data;
 using Infrastructure.Data.Authorization;
+using Infrastructure.Data.Entities;
+using Infrastructure.Data.Entities.Authorization;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -24,15 +24,20 @@ namespace Web.Controllers
 
         private readonly IEmailSender _emailSender;
 
-        private readonly IWebHostEnvironment _environment;
+        private readonly IAsyncFileTemplateParser _fileParser;
+
+        private readonly string _emailTemplatePath;
 
 
-        public AccountController(ApplicationContext db, IEmailSender emailSender, IWebHostEnvironment environment)
+        public AccountController(ApplicationContext db, IEmailSender emailSender, IWebHostEnvironment environment, IAsyncFileTemplateParser fileParser)
         {
             _db = db;
             _emailSender = emailSender;
-            _environment = environment;
+            _fileParser = fileParser;
+
+            _emailTemplatePath = @$"{environment.WebRootPath}\EmailVerificationTemplate.html";
         }
+
 
         [HttpGet]
         public IActionResult Login()
@@ -58,8 +63,8 @@ namespace Web.Controllers
                         return View(login);
                     }
 
-                    PasswordHasher<User> passwordHasher = new();
-                    var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, login.Password);
+
+                    var result = UserHasher.VerifyHashedPassword(user, user.PasswordHash, login.Password);
 
                     if (result != PasswordVerificationResult.Failed)
                     {
@@ -90,20 +95,20 @@ namespace Web.Controllers
             {
                 var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == signIn.Email);
 
-                if (user == null)
+                if (user is null)
                 {
                     user = new()
                     {
                         Email = signIn.Email,
-                        PasswordHash = new PasswordHasher<User>().HashPassword(null, signIn.Password),
+                        PasswordHash = UserHasher.HashPassword(signIn.Password),
                         Role = await _db.Roles.FirstAsync(r => r.Name == Constants.UserRoleName),
-                        SecretKey = Convert.ToBase64String(new HMACSHA256().Key)
+                        SecretKey = UserHasher.CreateSecretKey()
                     };
 
                     await _db.Users.AddAsync(user);
                     await _db.SaveChangesAsync();
 
-                    var token = new PasswordHasher<User>().HashPassword(null, $"{user.SecretKey}{user.Email}{user.PasswordHash}");
+                    var token = UserHasher.CreateToken(user);
 
                     var confirmUrl = Url.Action(
                         "ConfirmEmail",
@@ -112,28 +117,26 @@ namespace Web.Controllers
                         protocol: HttpContext.Request.Scheme);
 
 
-                    string filePath = @$"{_environment.WebRootPath}\EmailVerificationTemplate.html";
-
-                    var body = "";
-                    using (StreamReader str = new(filePath))
+                    var body = await _fileParser.ParseFileAsync(_emailTemplatePath, new()
                     {
-                        body = await str.ReadToEndAsync();
-                    }
-                    body = body.Replace("[confirmUrl]", confirmUrl).Replace("[email]", user.Email);
-
+                        { "Header", "Confirm email" },
+                        { "Body", "Welcome to Project Hub!\r\nClick the button below to verify your email address." },
+                        { "ButtonText", "Confirm email" },
+                        { "Action", "confirm email" },
+                        { "Link", confirmUrl }
+                    });
 
                     var verificationMailRequest = new MailRequest()
                     {
                         ToEmail = user.Email,
                         Subject = "Complete registration",
-                        Body = body,
-                        MessagePriority = MimeKit.MessagePriority.Urgent
+                        Body = body
                     };
 
                     await _emailSender.SendEmailAsync(verificationMailRequest);
 
 
-                    return Content("Check your mail and complete registration");
+                    return View("SignInConfirm");
                 }
 
                 ModelState.AddModelError("", "Email is already in use");
@@ -151,22 +154,19 @@ namespace Web.Controllers
             ModelState.AddModelError("", "Email is not confirmed");
 
 
-            if (userId == null || token == null) return View(signIn);
+            if (userId is null || token is null) return View(signIn);
 
 
             var user = await _db.Users
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
+            if (user is null) return View(signIn);
 
-            if (user == null) return View(signIn);
-
-
-            PasswordHasher<User> passwordHasher = new();
 
             try
             {
-                var result = passwordHasher.VerifyHashedPassword(user, token, $"{user.SecretKey}{user.Email}{user.PasswordHash}");
+                var result = UserHasher.VerifyHashedPassword(user, token);
 
                 if (result == PasswordVerificationResult.Failed) return View(signIn);
             }
@@ -176,17 +176,18 @@ namespace Web.Controllers
             }
 
 
-
             await AuthenticateAsync(user);
 
+            user.SecretKey = UserHasher.CreateSecretKey();
             user.HasConfirmedEmail = true;
             await _db.SaveChangesAsync();
 
 
             ModelState.Remove("");
 
-            return RedirectToAction("Index", "Home");
+            return View("ConfirmEmailSuccess");
         }
+
 
 
         [HttpGet]
@@ -204,7 +205,7 @@ namespace Web.Controllers
 
                 if (user != null)
                 {
-                    var token = new PasswordHasher<User>().HashPassword(null, $"{user.SecretKey}{user.Email}{user.PasswordHash}");
+                    var token = UserHasher.CreateToken(user);
 
                     var confirmUrl = Url.Action(
                         "ResetPassword",
@@ -213,27 +214,25 @@ namespace Web.Controllers
                         protocol: HttpContext.Request.Scheme);
 
 
-                    string filePath = @$"{_environment.WebRootPath}\EmailVerificationTemplate.html";
-
-                    var body = "";
-                    using (StreamReader str = new(filePath))
+                    var body = await _fileParser.ParseFileAsync(_emailTemplatePath, new()
                     {
-                        body = await str.ReadToEndAsync();
-                    }
-                    body = body.Replace("[confirmUrl]", confirmUrl).Replace("[email]", user.Email);
-
+                        { "Header", "Reset password" },
+                        { "Body", "Tap the button below to reset your password" },
+                        { "ButtonText", "Reset password" },
+                        { "Action", "reset password" },
+                        { "Link", confirmUrl }
+                    });
 
                     var resetPasswordRequest = new MailRequest()
                     {
                         ToEmail = user.Email,
                         Subject = "Reset password",
-                        Body = body,
-                        MessagePriority = MimeKit.MessagePriority.Urgent
+                        Body = body
                     };
 
                     await _emailSender.SendEmailAsync(resetPasswordRequest);
 
-                    return Content("Check email");
+                    return View("ForgotPasswordConfirm");
                 }
             }
 
@@ -248,23 +247,24 @@ namespace Web.Controllers
         {
             var forgotPassword = nameof(ForgotPassword);
 
+            if (email is null) return BadRequest();
+
+
             ModelState.AddModelError("", "Reset password link is invalid");
 
-            if (token == null) return View(forgotPassword);
+            if (token is null) return View(forgotPassword);
+
 
             var user = await _db.Users
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Email == email);
 
+            if (user is null) return View(forgotPassword);
 
-            if (user == null) return View(forgotPassword);
-
-
-            PasswordHasher<User> passwordHasher = new();
 
             try
             {
-                var result = passwordHasher.VerifyHashedPassword(null, token, $"{user.SecretKey}{user.Email}{user.PasswordHash}");
+                var result = UserHasher.VerifyHashedPassword(user, token);
 
                 if (result == PasswordVerificationResult.Failed) return View(forgotPassword);
             }
@@ -288,18 +288,17 @@ namespace Web.Controllers
         [HttpPost]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel resetPassword)
         {
-            if (!ModelState.IsValid)
-                return View(resetPassword);
+            if (!ModelState.IsValid) return View(resetPassword);
+
 
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == resetPassword.Email);
 
-            if (user == null) View(resetPassword);
+            if (user is null) View(resetPassword);
 
-            PasswordHasher<User> passwordHasher = new();
 
             try
             {
-                var result = passwordHasher.VerifyHashedPassword(user, resetPassword.Token, $"{user.SecretKey}{user.Email}{user.PasswordHash}");
+                var result = UserHasher.VerifyHashedPassword(user, resetPassword.Token);
 
                 if (result == PasswordVerificationResult.Failed) return View(resetPassword);
             }
@@ -308,11 +307,11 @@ namespace Web.Controllers
                 return View(resetPassword);
             }
 
-            user.PasswordHash = passwordHasher.HashPassword(user, resetPassword.Password);
-            user.SecretKey = Convert.ToBase64String(new HMACSHA256().Key);
+            user.PasswordHash = UserHasher.HashPassword(resetPassword.Password);
+            user.SecretKey = UserHasher.CreateSecretKey();
             await _db.SaveChangesAsync();
 
-            return View("Login");
+            return RedirectToAction("Login", new { returnUrl = "~/" });
         }
 
 
@@ -320,6 +319,7 @@ namespace Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
             return RedirectToAction("Index", "Home");
         }
 

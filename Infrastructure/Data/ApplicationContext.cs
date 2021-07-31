@@ -1,7 +1,7 @@
-﻿using Infrastructure.Data.Authorization;
+﻿using Infrastructure.Data.Entities.Authorization;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Data
+namespace Infrastructure.Data.Entities
 {
     public class ApplicationContext : DbContext
     {

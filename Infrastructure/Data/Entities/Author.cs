@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ProjectHubDTO;
 
-namespace Infrastructure.Data
+namespace Infrastructure.Data.Entities
 {
     public class Author : AuthorDTO
     {

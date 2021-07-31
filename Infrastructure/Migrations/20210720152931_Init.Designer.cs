@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Infrastructure.Data;
+using Infrastructure.Data.Entities;
 
 namespace Web.Migrations
 {
@@ -35,7 +35,7 @@ namespace Web.Migrations
                     b.ToTable("AuthorProject");
                 });
 
-            modelBuilder.Entity("Infrastructure.Data.Author", b =>
+            modelBuilder.Entity("Infrastructure.Data.Entities.Author", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -57,7 +57,7 @@ namespace Web.Migrations
                     b.ToTable("Authors");
                 });
 
-            modelBuilder.Entity("Infrastructure.Data.Project", b =>
+            modelBuilder.Entity("Infrastructure.Data.Entities.Project", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -78,13 +78,13 @@ namespace Web.Migrations
 
             modelBuilder.Entity("AuthorProject", b =>
                 {
-                    b.HasOne("Infrastructure.Data.Author", null)
+                    b.HasOne("Infrastructure.Data.Entities.Author", null)
                         .WithMany()
                         .HasForeignKey("AuthorsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Infrastructure.Data.Project", null)
+                    b.HasOne("Infrastructure.Data.Entities.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectsId")
                         .OnDelete(DeleteBehavior.Cascade)

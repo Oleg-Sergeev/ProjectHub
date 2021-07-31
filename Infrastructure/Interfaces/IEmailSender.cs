@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Infrastructure.Data;
+using Infrastructure.Data.Entities;
 
 namespace Infrastructure.Interfaces
 {

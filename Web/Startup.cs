@@ -1,10 +1,13 @@
-using Infrastructure.Data;
+using System;
+using System.Collections.Generic;
+using Infrastructure.Data.Entities;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +41,7 @@ namespace Web
             services.AddControllersWithViews();
 
             services.AddTransient<IEmailSender, EmailSender>();
+            services.AddTransient<IAsyncFileTemplateParser, FileTemplateParser>();
 
             services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
         }

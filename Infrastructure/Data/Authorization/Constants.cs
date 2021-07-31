@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Data.Authorization
+﻿namespace Infrastructure.Data.Entities.Authorization
 {
     public static class Constants
     {

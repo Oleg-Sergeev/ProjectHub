@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Infrastructure.Data;
+using Infrastructure.Data.Entities;
 using Infrastructure.Interfaces;
 using Infrastructure.Settings;
 using MailKit.Net.Smtp;
@@ -27,11 +27,10 @@ namespace Infrastructure.Services
                 Body = new TextPart(MimeKit.Text.TextFormat.Html)
                 {
                     Text = mailRequest.Body
-                },
-                Priority = mailRequest.MessagePriority,
-                Sender = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail)
+                }
             };
 
+            message.From.Add(new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail));
             message.To.Add(MailboxAddress.Parse(mailRequest.ToEmail));
 
 

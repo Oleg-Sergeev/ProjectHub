@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using ProjectHubDTO;
 
-namespace Infrastructure.Data.Authorization
+namespace Infrastructure.Data.Entities.Authorization
 {
     public class Role : BaseEntity
     {
