@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Infrastructure.Data.Authorization;
 using Infrastructure.Data.Entities;
@@ -205,7 +203,15 @@ namespace Web.Controllers
 
                 if (user != null)
                 {
+                    if (!user.HasConfirmedEmail)
+                    {
+                        ModelState.AddModelError("", "Email is not confirmed");
+
+                        return View(forgotPassword);
+                    }
+
                     var token = UserHasher.CreateToken(user);
+
 
                     var confirmUrl = Url.Action(
                         "ResetPassword",
@@ -311,7 +317,7 @@ namespace Web.Controllers
             user.SecretKey = UserHasher.CreateSecretKey();
             await _db.SaveChangesAsync();
 
-            return RedirectToAction("Login", new { returnUrl = "~/" });
+            return View("ResetPasswordConfirm");
         }
 
 

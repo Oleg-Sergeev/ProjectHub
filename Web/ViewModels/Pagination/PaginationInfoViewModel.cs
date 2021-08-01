@@ -9,6 +9,11 @@ namespace Web.ViewModels.Pagination
         public int TotalPages { get; init; }
 
 
+        public bool HasPreviousPage => CurrentPage > 1;
+
+        public bool HasNextPage => CurrentPage < TotalPages;
+
+
         public PaginationInfoViewModel() {}
 
         public PaginationInfoViewModel(int currentPage, int pageSize, int itemsCount)

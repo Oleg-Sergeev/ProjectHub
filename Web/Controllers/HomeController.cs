@@ -63,7 +63,7 @@ namespace Web.Controllers
             var indexVM = new IndexViewModel()
             {
                 Items = pagedProjects,
-                PaginationInfo = new(page, PageSize, await _db.Projects.CountAsync())
+                PaginationInfo = new(page, PageSize, await query.CountAsync())
             };
 
             return View(indexVM);
@@ -82,7 +82,7 @@ namespace Web.Controllers
             var authorsListVM = new AuthorsListViewModel()
             {
                 Items = pagedAuthors,
-                PaginationInfo = new(page, PageSize, await _db.Projects.CountAsync())
+                PaginationInfo = new(page, PageSize, await _db.Authors.CountAsync())
             };
 
             return View(authorsListVM);

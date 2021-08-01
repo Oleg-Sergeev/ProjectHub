@@ -333,5 +333,6 @@ ASALocalRun/
 # Local History for Visual Studio
 .localhistory/
 
-# Development data
+# data
 *.Development.json
+*.Production.json

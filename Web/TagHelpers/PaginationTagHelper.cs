@@ -13,14 +13,13 @@ namespace Web.TagHelpers
 {
     public class PaginationTagHelper : TagHelper
     {
-        private const string ContainerCss = "container";
         private const string PaginationCss = "pagination";
         private const string PageItemCss = "page-item";
         private const string PageLinkCss = "page-link";
         private const string ActiveCss = "active";
         private const string DisabledCss = "disabled";
 
-        private const int PageCount = 7;
+        private const int PageCount = 5;
 
 
         private readonly IUrlHelperFactory _urlHelperFactory;
@@ -50,7 +49,6 @@ namespace Web.TagHelpers
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(ViewContext);
 
             output.TagName = "div";
-            output.AddClass(ContainerCss, HtmlEncoder.Default);
 
             var ul = new TagBuilder("ul");
             ul.AddCssClass(PaginationCss);
@@ -63,9 +61,15 @@ namespace Web.TagHelpers
 
             var action = ViewContext.RouteData.Values["action"].ToString();
 
+
             var firstPage = BuildPageLink(1, "«");
-            if (PaginationInfo.CurrentPage == 1) firstPage.AddCssClass(DisabledCss);
+            if (!PaginationInfo.HasPreviousPage) firstPage.AddCssClass(DisabledCss);
             ul.InnerHtml.AppendHtml(firstPage);
+
+
+            var prevPage = BuildPageLink(PaginationInfo.CurrentPage - 1, "Prev");
+            if (!PaginationInfo.HasPreviousPage) prevPage.AddCssClass(DisabledCss);
+            ul.InnerHtml.AppendHtml(prevPage);
 
             for (var i = startPage; i <= finishPage; i++)
             {
@@ -75,8 +79,12 @@ namespace Web.TagHelpers
                 ul.InnerHtml.AppendHtml(page);
             }
 
+            var nextPage = BuildPageLink(PaginationInfo.CurrentPage + 1, "Next");
+            if (!PaginationInfo.HasNextPage) nextPage.AddCssClass(DisabledCss);
+            ul.InnerHtml.AppendHtml(nextPage);
+
             var lastPage = BuildPageLink(PaginationInfo.TotalPages, "»");
-            if (PaginationInfo.CurrentPage == PaginationInfo.TotalPages) lastPage.AddCssClass(DisabledCss);
+            if (!PaginationInfo.HasNextPage) lastPage.AddCssClass(DisabledCss);
             ul.InnerHtml.AppendHtml(lastPage);
 
 
