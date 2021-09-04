@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.Data.Authorization;
@@ -46,16 +47,6 @@ namespace Infrastructure.Extensions
                 {
                     FirstName = "Олег",
                     LastName = "Сергеев",
-                },
-                new()
-                {
-                    FirstName = "Scott",
-                    LastName = "Samons"
-                },
-                new()
-                {
-                    FirstName = "Даниил",
-                    LastName = "Лапаев"
                 }
             };
 
@@ -64,25 +55,46 @@ namespace Infrastructure.Extensions
             {
                 new()
                 {
+                    Name = "Project hub",
+                    Description = "Simple site to display my projects." +
+                    "\n Github link: https://github.com/Oleg-Sergeev/ProjectHub",
+                    CreatedAt = new DateTime(2021, 7, 20)
+                },
+                new()
+                {
                     Name = "Discord bot C#",
-                    Description = "some description"
+                    Description = "Created for fun." +
+                    "\nGithub link (private repo): https://github.com/Oleg-Sergeev/DiscordBot",
+                    CreatedAt = new DateTime(2021, 1, 17)
                 },
                 new()
                 {
-                    Name = "Волк",
-                    Description = "Ауф"
+                    Name = "The Perfect Way",
+                    Description = "My first attempt to create a game." +
+                    "\nGoogle play link: https://play.google.com/store/apps/details?id=com.ZixxanGames.PerfectWay " +
+                    "\nGithub link: https://github.com/Oleg-Sergeev/ThePerfectWay",
+                    CreatedAt = new DateTime(2018, 9, 14)
                 },
                 new()
                 {
-                    Name = "Koking Mucker"
-                }
+                    Name = "The Area 51",
+                    Description = "News about \"Area 51\" pushed me to create this game." +
+                    "\nGoogle play Link: https://play.google.com/store/apps/details?id=com.ZixxanGames.Area51 " +
+                    "\nGithub link: https://github.com/Oleg-Sergeev/TheArea51",
+                    CreatedAt = new DateTime(2019, 7, 22)
+                },
+                new()
+                {
+                    Name = "Intor",
+                    Description = "A project that I will develop for a long time." +
+                    "\nGithub link: https://github.com/Oleg-Sergeev/Intor",
+                    CreatedAt = new DateTime(2021, 7, 20)
+                },
             };
 
         private static void MakeManyToMany(IList<Author> authors, IList<Project> projects)
         {
-            authors[0].Projects = new List<Project> { projects[0], projects[2] };
-            authors[1].Projects = new List<Project> { projects[2] };
-            authors[2].Projects = new List<Project> { projects[1], projects[2] };
+            authors[0].Projects = new List<Project>(projects);
         }
 
 
